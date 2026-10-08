@@ -141,23 +141,21 @@ fun SettingsView(
 
           Lists.ItemDivider()
           Setting.Switch(
-              title = "Split Tunnel Mode (分流模式)",
+              title = "分流模式",
               subtitle =
-                  "Only route Tailscale traffic (100.64.0.0/10). " +
-                  "Other traffic uses system default route. " +
-                  "This allows other VPN/proxy apps (like Clash) to work simultaneously. " +
-                  "Requires VPN restart to take effect.",
+                  "仅路由 Tailscale 流量（100.64.0.0/10），其他流量走系统默认路由。" +
+                  "可与 Clash 等其他 VPN/代理应用同时使用。" +
+                  "需要重启 VPN 生效。",
               isOn = isSplitTunnelEnabled,
               onToggle = { viewModel.toggleSplitTunnel() })
 
           Lists.ItemDivider()
           Setting.Switch(
-              title = "Proxy Mode (代理模式)",
+              title = "代理模式",
               subtitle =
-                  "Run Tailscale as a local SOCKS5/HTTP proxy without VPN permission. " +
-                  "SOCKS5: 127.0.0.1:1080 | HTTP: 127.0.0.1:8080. " +
-                  "Does not interfere with other VPN/proxy apps. " +
-                  "Configure your apps to use the proxy to access Tailnet.",
+                  "无需 VPN 权限，以本地 SOCKS5/HTTP 代理方式运行 Tailscale。" +
+                  "SOCKS5: 127.0.0.1:1080，HTTP: 127.0.0.1:8080。" +
+                  "不与其他 VPN/代理应用冲突，在应用中配置代理即可访问 Tailnet。",
               isOn = isProxyModeEnabled,
               onToggle = { viewModel.toggleProxyMode() })
 
