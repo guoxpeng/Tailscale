@@ -44,15 +44,11 @@ class SettingsViewModel : IpnViewModel() {
   init {
     isClientRemoteLoggingEnabled.set(App.get().isClientLoggingEnabled())
     
-    // Load proxy mode setting from SharedPreferences
+    // Load proxy mode setting from SharedPreferences (do NOT auto-start here,
+    // proxy is started/stopped only via toggleProxyMode to avoid blocking UI)
     val prefs = App.get().getSharedPreferences("proxy_settings", android.content.Context.MODE_PRIVATE)
     val savedProxyMode = prefs.getBoolean("proxy_mode_enabled", false)
     isProxyModeEnabled.set(savedProxyMode)
-    
-    // Start proxy if it was enabled before
-    if (savedProxyMode && !App.get().isProxyRunning()) {
-      App.get().startProxy()
-    }
 
     viewModelScope.launch {
       Notifier.netmap.collect { netmap -> isAdmin.set(netmap?.SelfNode?.isAdmin ?: false) }
