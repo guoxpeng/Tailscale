@@ -1,0 +1,54 @@
+name: 构建 APK
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: 安装 Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 安装 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 安装 NDK
+        run: sdkmanager "ndk;27.0.12077973"
+
+      - name: 构建 APK
+        run: |
+          export ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/27.0.12077973
+          make tailscale-debug
+        env:
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
+      - name: 上传 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: tailscale-zh
+          path: tailscale-debug.apk
+
+      - name: 发布到 Release（仅 tag）
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: tailscale-debug.apk
+          body: |
+            Tailscale 安卓汉化版 ${{ github.ref_name }}
+            - 代理模式 / 内置浏览器 / 分流模式
+            - 完整中文汉化
