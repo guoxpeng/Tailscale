@@ -54,7 +54,7 @@ jobs:
       - name: Build libtailscale AAR
         run: make libtailscale
         
-      - name: Build debug APK with signing
+      - name: Build debug APK with signing (full)
         run: |
           cd android
           ./gradlew assembleDebug --stacktrace \
@@ -62,6 +62,17 @@ jobs:
             -Pandroid.injected.signing.store.password=android \
             -Pandroid.injected.signing.key.alias=androiddebugkey \
             -Pandroid.injected.signing.key.password=android
+          
+      - name: Build debug APK with signing (slim arm64)
+        run: |
+          cd android
+          ./gradlew assembleDebug --stacktrace -PslimBuild \
+            -Pandroid.injected.signing.store.file=$HOME/debug.keystore \
+            -Pandroid.injected.signing.store.password=android \
+            -Pandroid.injected.signing.key.alias=androiddebugkey \
+            -Pandroid.injected.signing.key.password=android
+          cp build/outputs/apk/debug/android-debug.apk ../tailscale-debug-slim.apk
+          ls -lh ../tailscale-debug-slim.apk
           
       - name: Verify APK signing
         run: |
@@ -78,11 +89,13 @@ jobs:
       - name: Copy APK to root
         run: |
           cp android/build/outputs/apk/debug/android-debug.apk tailscale-debug.apk
-          ls -lh tailscale-debug.apk
+          ls -lh tailscale-debug.apk tailscale-debug-slim.apk
           
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: tailscale-debug-apk
-          path: tailscale-debug.apk
+          path: |
+            tailscale-debug.apk
+            tailscale-debug-slim.apk
           retention-days: 30

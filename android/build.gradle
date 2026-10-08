@@ -47,6 +47,10 @@ android {
         versionCode 110400101
         versionName "1.104.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            // slimBuild=true 时只打 arm64（手机用），否则打全架构
+            abiFilters project.hasProperty('slimBuild') ? ["arm64-v8a"] : ["arm64-v8a", "armeabi-v7a", "x86", "x86_64"]
+        }
 
         // This setting, which defaults to 'true', will cause Tailscale to fall
         // back to the Google DNS servers if it cannot determine what the
