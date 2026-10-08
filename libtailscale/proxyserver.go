@@ -454,27 +454,31 @@ func (ps *ProxyServer) handleHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Read response and forward back with context cancellation
-	hjc := newHijackConn(w)
-	defer hjc.Close()
+	// Hijack the client connection for raw TCP forwarding of the response.
+	// (The request, including body, was already written via r.Write above,
+	// so only the response direction needs copying.)
+	hijacker, ok := w.(http.Hijacker)
+	if !ok {
+		http.Error(w, "Hijack not supported", http.StatusInternalServerError)
+		return
+	}
+	client, _, err := hijacker.Hijack()
+	if err != nil {
+		http.Error(w, "Hijack failed", http.StatusInternalServerError)
+		return
+	}
 
-	done := make(chan struct{}, 2)
+	done := make(chan struct{}, 1)
 	go func() {
 		defer func() { done <- struct{}{} }()
-		io.Copy(hjc, remote)
+		io.Copy(client, remote)
 	}()
-	go func() {
-		defer func() { done <- struct{}{} }()
-		io.Copy(remote, hjc)
-	}()
-	
-	// Wait for one direction to finish, then close both connections
+
 	select {
 	case <-done:
 	case <-r.Context().Done():
 	}
-	// Close both connections to unblock the other goroutine
-	hjc.Close()
+	client.Close()
 	remote.Close()
 }
 
@@ -523,32 +527,4 @@ func (ps *ProxyServer) handleHTTPConnect(w http.ResponseWriter, r *http.Request)
 	// Close both connections to unblock the other goroutine
 	target.Close()
 	client.Close()
-}
-
-// hijackConn wraps ResponseWriter for raw TCP forwarding
-type hijackConn struct {
-	w   http.ResponseWriter
-	rc  io.ReadCloser
-}
-
-func newHijackConn(w http.ResponseWriter) *hijackConn {
-	return &hijackConn{w: w}
-}
-
-func (h *hijackConn) Read(b []byte) (int, error) {
-	if h.rc == nil {
-		return 0, io.EOF
-	}
-	return h.rc.Read(b)
-}
-
-func (h *hijackConn) Write(b []byte) (int, error) {
-	return h.w.Write(b)
-}
-
-func (h *hijackConn) Close() error {
-	if h.rc != nil {
-		return h.rc.Close()
-	}
-	return nil
 }
