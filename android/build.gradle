@@ -49,7 +49,11 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             // slimBuild=true 时只打 arm64（手机用），否则打全架构
-            abiFilters project.hasProperty('slimBuild') ? ["arm64-v8a"] : ["arm64-v8a", "armeabi-v7a", "x86", "x86_64"]
+            if (project.hasProperty('slimBuild')) {
+                abiFilters "arm64-v8a"
+            } else {
+                abiFilters "arm64-v8a", "armeabi-v7a", "x86", "x86_64"
+            }
         }
 
         // This setting, which defaults to 'true', will cause Tailscale to fall
