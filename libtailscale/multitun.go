@@ -58,8 +58,11 @@ type tunDevice struct {
 }
 
 type ioRequest struct {
+	// For reads (new tun.Reader API):
+	slab    []byte
+	packets []tun.ReadPacket
+	// For writes:
 	data   [][]byte
-	sizes  []int
 	offset int
 	reply  chan<- ioReply
 }
@@ -202,7 +205,7 @@ func (d *multiTUN) readFrom(dev *tunDevice) {
 	for {
 		select {
 		case r := <-d.reads:
-			n, err := dev.dev.Read(r.data, r.sizes, r.offset)
+			n, err := dev.dev.Read(r.slab, r.packets)
 			stop := false
 			if err != nil {
 				select {
@@ -322,14 +325,14 @@ func (d *multiTUN) File() *os.File {
 	panic("not available on Android")
 }
 
-func (d *multiTUN) Read(data [][]byte, sizes []int, offset int) (int, error) {
+func (d *multiTUN) Read(slab []byte, packets []tun.ReadPacket) (int, error) {
 	r := make(chan ioReply)
 	select {
 	// We don't care about d.downCh here, as it's fine
 	// to continue waiting until the tunnel is up again
 	// or the multiTUN device is permanently closed.
 	// This does not block WireGuard reconfiguration.
-	case d.reads <- ioRequest{data, sizes, offset, r}:
+	case d.reads <- ioRequest{slab: slab, packets: packets, reply: r}:
 		rep := <-r
 		return rep.count, rep.err
 	case <-d.close:
@@ -341,7 +344,7 @@ func (d *multiTUN) Read(data [][]byte, sizes []int, offset int) (int, error) {
 func (d *multiTUN) Write(data [][]byte, offset int) (int, error) {
 	r := make(chan ioReply)
 	select {
-	case d.writes <- ioRequest{data, nil, offset, r}:
+	case d.writes <- ioRequest{data: data, offset: offset, reply: r}:
 		rep := <-r
 		return rep.count, rep.err
 	case <-d.downCh.Load():
