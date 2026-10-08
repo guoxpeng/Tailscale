@@ -77,21 +77,6 @@ class SettingsViewModel : IpnViewModel() {
   }
 
   fun toggleProxyMode() {
-    val newValue = !isProxyModeEnabled.value
-    isProxyModeEnabled.set(newValue)
-    
-    // Persist the setting
-    val prefs = App.get().getSharedPreferences("proxy_settings", android.content.Context.MODE_PRIVATE)
-    prefs.edit().putBoolean("proxy_mode_enabled", newValue).apply()
-    
-    // Actually start/stop the proxy server
-    if (newValue) {
-      // Start proxy mode - stop VPN first if running
-      App.get().stopVPN()
-      App.get().startProxy()
-    } else {
-      // Stop proxy mode
-      App.get().stopProxy()
-    }
+    isProxyModeEnabled.set(!isProxyModeEnabled.value)
   }
 }
