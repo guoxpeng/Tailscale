@@ -1,7 +1,11 @@
 # Tailscale Windows 汉化
 
 > ✅ **现已一体化：安装包自带官方 Tailscale 1.104.1 组件，无需预装。**
->
+
+**下载**：打开 [**Releases**](https://github.com/guoxpeng/tailscale-zh/releases) 取最新标签
+（当前 `pc-v1.104.1-fix`）下的 `Tailscale-zh-1.104.1-setup.exe`。
+CI 每次推送都会重新构建，Release 资产与源码逐字节对应。
+
 > - **没装过 Tailscale 的电脑**：直接装本包即可 —— 会先**静默**装好官方组件
 >   （`msiexec /qn`，全程无界面、无英文向导、无弹窗），再把界面换成中文版。
 > - **已装 Tailscale 1.104.1 的电脑**：自动跳过官方安装，直接替换界面程序。
@@ -50,8 +54,9 @@
 4. 重新运行 C:\Program Files\Tailscale\tailscale-ipn.exe
 ```
 
-仓库里的 [`prebuilt/tailscale-ipn.zh.exe`](prebuilt/) 是已经**实机验证可用**的成品，
-可直接下载使用；其 SHA256 见同目录 `SHA256SUMS.txt`，与 CI 构建产物逐字节一致。
+仓库里的 [`prebuilt/tailscale-ipn.zh.exe`](prebuilt/) 是成品副本，可直接下载使用；
+其 SHA256 见同目录 `SHA256SUMS.txt`，与 CI 从同一源码构建出的产物逐字节一致
+（因此如果你要的是「确定能跑」的那份，Release 里的 `tailscale-ipn.zh.exe` 与它完全相同）。
 
 ### 方式 C：一键脚本
 
@@ -189,3 +194,40 @@ CI 会在**源文件哈希不符**时直接失败（不会产出错误的包）�
 - **换版本要重做偏移表**：补丁依赖精确的文件偏移，Tailscale 升级后 `zh_win.tsv` 与 `build.py` 里的
   SHA256 常量都需要更新；CI 会在源文件哈希不符时直接失败，不会产出错误的包。
 - 本项目仅为界面汉化，与 Tailscale Inc. 无关联，不分发其源码或未修改的官方二进制。
+
+---
+
+## 七、更新日志
+
+### `pc-v1.104.1-fix`（当前）
+
+**修复**
+
+- **安装包一体化**：`setup.exe` 内嵌官方 1.104.1 MSI。全新机器直接装本包即可，
+  安装器先用 `msiexec /qn /norestart TS_NOLAUNCH=1` **静默**装好完整组件
+  （无英文向导、无弹窗、不由官方安装器抢先拉起托盘），再替换界面程序。
+- **补齐无人值守弹窗**：`Run unattended`（无人值守）确认框正文此前一直是英文。
+  根因是**对话框正文本身就是一条 286 字节的多行长字符串常量**，从未被收录进对照表；
+  标题 `Confirm unattended mode` 早已汉化，所以只看到正文是英文。现已汉化，
+  出口节点确认框正文（249 字节）同理一并修复。
+- **修掉 3 条「写了但没生效」的条目**：`You are logged out. The last login error was: %v`、
+  `Connected - `、`Managed by %s`。旧表只收录了短前缀，被「重叠字面量保护」判定为
+  更长字面量的子串而**拒绝落位**，界面因此一直是英文。
+- 对照表新增 `\r` `\n` `\t` `\\` `\xHH` 转义（多行文案与行尾空格必需），
+  `patch_zh.py` 与 `verify.py` 用同一套还原逻辑。
+- 安装器新增**版本一致性检查**：检测到已装 `tailscale-ipn.exe` 大小与本包基准不符时
+  弹窗确认，避免把不同版本的界面程序与 `tailscaled` 服务混用。
+
+**汉化条目**：47 → **118 条**（保长替换 102 + 扩容 16，扩容区 323/504 字节）。
+
+**刻意不收录**：`A request to sign the following device...` 看着像界面文案，实际是一条
+更长的 Go 模板字面量（后方还接着 `{{.OSName}}<a href=...>`）。按句号截断替换会破坏模板渲染，
+补丁器按「无长度立即数」自动 SKIP。
+
+### `pc-v1.104.1`
+
+- 首个 PC 版汉化（47 条界面文案），Inno Setup 向导式安装包，卸载自动还原。
+
+### `v1.104.1-zh` / `v3-fix`
+
+- Android 版汉化相关的历史标签，与 PC 安装包无关。
