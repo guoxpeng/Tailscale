@@ -18,6 +18,8 @@
 2. 下载本仓库 Release 里的 `Tailscale-zh-1.104.1-setup.exe`，**右键 → 以管理员身份运行**。
 3. 安装程序会：退出托盘程序 → 把官方原版备份为 `tailscale-ipn.exe.orig` → 写入汉化版 → 重新拉起托盘程序。
 4. 卸载「Tailscale 中文汉化」即可**自动还原**官方版本。
+   托盘程序会随卸载一起退出，从开始菜单重新打开 Tailscale 即可；
+   `tailscaled` 服务与其网络连通性全程不受影响。
 
 ### 方式 B：手动替换
 
@@ -98,6 +100,17 @@ python tools/verify.py extract/ClientGUIx64 build/tailscale-ipn.zh.exe tools/zh_
 ISCC.exe installer\tailscale-zh.iss
 # 产物: dist\Tailscale-zh-1.104.1-setup.exe
 ```
+
+不想在系统里装 Inno Setup 也可以免安装解压一份来用（Inno 自己的安装包支持 `/PORTABLE=1`）：
+
+```bash
+innosetup-6.7.3.exe /PORTABLE=1 /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR=inno
+inno\ISCC.exe installer\tailscale-zh.iss
+```
+
+> 改完 `.iss` 建议先在本地跑一次上面的编译再推 CI：
+> 编译器能直接指出脚本函数用错（例如 `FileSize` 是 `var` 出参而非返回值、
+> `ExecAsOriginalUser` 在卸载阶段不可调用），比等 CI 快得多。
 
 ### CI 自动构建
 
