@@ -1,72 +1,122 @@
 @echo off
-chcp 65001 >nul
+chcp 936 >nul 2>&1
 setlocal
-title Tailscale ÁïåÈù¢Ê±âÂåñ - ÂÆâË£Ö / ËøòÂéü
+title Tailscale ΩÁ√Ê∫∫ªØ - ∞≤◊∞ / ªπ‘≠
 
 rem ============================================================
-rem  ‰∏ÄÈîÆÂÆâË£Ö / ËøòÂéü Tailscale Windows ÁïåÈù¢Ê±âÂåñ
+rem  “ªº¸∞≤◊∞ / ªπ‘≠ Tailscale Windows ΩÁ√Ê∫∫ªØ
 rem
-rem  ÂÆâË£Ö: Âè≥ÈîÆÊú¨Êñá‰ª∂ -> ‰ª•ÁÆ°ÁêÜÂëòË∫´‰ªΩËøêË°åÔºàÈúÄ‰∏éÊú¨ËÑöÊú¨ÂêåÁõÆÂΩïÊúâ
-rem        tailscale-ipn.zh.exeÔºâ
-rem  ËøòÂéü: install_zh.bat restore
+rem  ∞≤◊∞: ”“º¸±æŒƒº˛ -> “‘π‹¿Ì‘±…Ì∑›‘À––£®–Ë”Î±æΩ≈±æÕ¨ƒø¬º”–
+rem        tailscale-ipn.zh.exe£©
+rem  ªπ‘≠: install_zh.bat restore
+rem
+rem  ––Œ™”Î∞≤◊∞∞¸£®installer/tailscale-zh.iss£©±£≥÷“ª÷¬£∫
+rem    - ‘≠∞Ê÷ª±∏∑›“ª¥ŒŒ™ tailscale-ipn.exe.orig£¨÷ÿ∏¥∞≤◊∞≤ªª·∞—À¸∏≤∏«µÙ
+rem    - –¥»Î ß∞‹ª·÷ÿ ‘ 5 ¥Œ£¨»‘ ß∞‹‘Ú√˜»∑±®¥Ì£®≤ª‘ŸŒÛ±®°∏ÕÍ≥…°π£©
+rem    - ”√ explorer ◊™Ωª∆Ù∂ØÕ–≈Ã£¨±‹√‚“‘π‹¿Ì‘±…Ì∑›‘À–– Tailscale GUI
 rem ============================================================
+
+rem »° 64 Œª Program Files£∫%ProgramFiles% ‘⁄ 32 ŒªÀﬁ÷˜Ω¯≥Ã¿Ôª·±ª÷ÿ∂®œÚµΩ (x86)
+set "PF=%ProgramW6432%"
+if not defined PF set "PF=%ProgramFiles%"
 
 set "SRC=%~dp0tailscale-ipn.zh.exe"
-set "DEST_DIR=%ProgramFiles%\Tailscale"
+set "DEST_DIR=%PF%\Tailscale"
 set "DST=%DEST_DIR%\tailscale-ipn.exe"
 set "BAK=%DEST_DIR%\tailscale-ipn.exe.orig"
 set "OLDBAK=%DEST_DIR%\tailscale-ipn.exe.orig.bak"
 
 net session >nul 2>&1
 if %errorlevel% neq 0 (
-  echo [!] ÈúÄË¶ÅÁÆ°ÁêÜÂëòÊùÉÈôêÔºöËØ∑Âè≥ÈîÆÊú¨Êñá‰ª∂ -^> "‰ª•ÁÆ°ÁêÜÂëòË∫´‰ªΩËøêË°å"
-  pause & exit /b 1
-)
-if not exist "%DST%" (
-  echo [!] Êú™ÊâæÂà∞Â∑≤ÂÆâË£ÖÁöÑ Tailscale: %DST%
+  echo [!] –Ë“™π‹¿Ì‘±»®œﬁ£∫«Î”“º¸±æŒƒº˛ -^> "“‘π‹¿Ì‘±…Ì∑›‘À––"
   pause & exit /b 1
 )
 
 if /i "%~1"=="restore" goto RESTORE
 
+if not exist "%DST%" (
+  echo [!] Œ¥’“µΩ“—∞≤◊∞µƒ Tailscale: %DST%
+  pause & exit /b 1
+)
 if not exist "%SRC%" (
-  echo [!] Êú™ÊâæÂà∞Ê±âÂåñÊñá‰ª∂: %SRC%
-  echo     ËØ∑Êää tailscale-ipn.zh.exe ‰∏éÊú¨ËÑöÊú¨ÊîæÂú®Âêå‰∏ÄÁõÆÂΩï„ÄÇ
+  echo [!] Œ¥’“µΩ∫∫ªØŒƒº˛: %SRC%
+  echo     «Î∞— tailscale-ipn.zh.exe ”Î±æΩ≈±æ∑≈‘⁄Õ¨“ªƒø¬º°£
   pause & exit /b 1
 )
 
-echo [1/4] Â§á‰ªΩÂÆòÊñπÂéüÁâà -^> tailscale-ipn.exe.orig
-if not exist "%BAK%" copy /Y "%DST%" "%BAK%" >nul
+echo [1/4] ±∏∑›πŸ∑Ω‘≠∞Ê -^> tailscale-ipn.exe.orig
+if not exist "%BAK%" (
+  copy /Y "%DST%" "%BAK%" >nul
+  if errorlevel 1 (
+    echo [!] ±∏∑›‘≠∞Ê ß∞‹£¨“—÷–÷π£®Œ¥∏ƒ∂Ø»Œ∫ŒŒƒº˛£©
+    pause & exit /b 1
+  )
+)
 
-echo [2/4] ÂÖ≥Èó≠ Tailscale ÊâòÁõòÁ®ãÂ∫è
+echo [2/4] πÿ±’ Tailscale Õ–≈Ã≥Ã–Ú
 taskkill /IM tailscale-ipn.exe /F >nul 2>&1
-timeout /t 2 /nobreak >nul
+ping -n 3 127.0.0.1 >nul
 
-echo [3/4] ÂÜôÂÖ•Ê±âÂåñÁâà
-copy /Y "%SRC%" "%DST%" >nul
+echo [3/4] –¥»Î∫∫ªØ∞Ê
+set "OK="
+for /L %%i in (1,1,5) do (
+  copy /Y "%SRC%" "%DST%" >nul 2>&1
+  if not errorlevel 1 (
+    set "OK=1"
+    goto :INSTALLED
+  )
+  echo     µ⁄ %%i ¥Œ–¥»Î ß∞‹£®Œƒº˛ø…ƒ‹»‘±ª’º”√£©£¨÷ÿ ‘ ...
+  ping -n 3 127.0.0.1 >nul
+)
+:INSTALLED
+if not defined OK (
+  echo [!] –¥»Î∫∫ªØ∞Ê ß∞‹£∫«Îœ» ÷∂ØÕÀ≥ˆ Tailscale Õ–≈Ã≥Ã–Ú£¨‘Ÿ“‘π‹¿Ì‘±…Ì∑›÷ÿ≈‹±æΩ≈±æ°£
+  pause & exit /b 1
+)
 
-echo [4/4] ÈáçÊñ∞ÂêØÂä® Tailscale
-start "" "%DST%"
+echo [4/4] ÷ÿ–¬∆Ù∂Ø Tailscale
+rem ”√ explorer ◊™Ωª∆Ù∂Ø£∫±æΩ≈±æ «Ã·»®‘À––µƒ£¨÷±Ω” start ª·»√ Tailscale GUI
+rem “‘π‹¿Ì‘±…Ì∑›‘À––£®πŸ∑Ω≤ª÷ß≥÷’‚÷÷”√∑®£©£ªΩª∏¯“—‘⁄”√ªßª·ª∞÷–µƒ explorer
+rem ¥¶¿Ì£¨ø…»√À¸“‘µ±«∞µ«¬º”√ªß…Ì∑›∆Ù∂Ø°£
+explorer.exe "%DST%"
 
 echo.
-echo  ÂÆåÊàêÔºÅÁÇπÂáªÊâòÁõòÈáåÁöÑ Tailscale ÂõæÊ†áÂç≥ÂèØÁúãÂà∞‰∏≠ÊñáÁïåÈù¢„ÄÇ
-echo  ËøòÂéüÂÆòÊñπËã±ÊñáÁâà:  install_zh.bat restore
+echo  ÕÍ≥…£°µ„ª˜Õ–≈Ã¿Ôµƒ Tailscale Õº±Íº¥ø…ø¥µΩ÷–ŒƒΩÁ√Ê°£
+echo  ªπ‘≠πŸ∑Ω”¢Œƒ∞Ê:  install_zh.bat restore
 echo.
 pause
 exit /b 0
 
 :RESTORE
+rem ªπ‘≠∑÷÷ß≤ª“™«Û÷˜≥Ã–Úµ±«∞¥Ê‘⁄ °™°™ ƒø±ÍæÕ «∞—À¸∑≈ªÿ»•
 set "RESTORE_SRC=%BAK%"
 if not exist "%RESTORE_SRC%" set "RESTORE_SRC=%OLDBAK%"
 if not exist "%RESTORE_SRC%" (
-  echo [!] Êú™ÊâæÂà∞Â§á‰ªΩÔºàÊó¢Ê≤°Êúâ tailscale-ipn.exe.orig ‰πüÊ≤°Êúâ tailscale-ipn.exe.orig.bakÔºâ
+  echo [!] Œ¥’“µΩ±∏∑›£®º»√ª”– tailscale-ipn.exe.orig “≤√ª”– tailscale-ipn.exe.orig.bak£©
   pause & exit /b 1
 )
-echo Ê≠£Âú®ËøòÂéüÂÆòÊñπÂéüÁâà ...
+
+echo ’˝‘⁄ªπ‘≠πŸ∑Ω‘≠∞Ê ...
 taskkill /IM tailscale-ipn.exe /F >nul 2>&1
-timeout /t 2 /nobreak >nul
-copy /Y "%RESTORE_SRC%" "%DST%" >nul
-start "" "%DST%"
-echo Â∑≤ËøòÂéü„ÄÇ
+ping -n 3 127.0.0.1 >nul
+
+set "OK="
+for /L %%i in (1,1,5) do (
+  copy /Y "%RESTORE_SRC%" "%DST%" >nul 2>&1
+  if not errorlevel 1 (
+    set "OK=1"
+    goto :RESTORED
+  )
+  echo     µ⁄ %%i ¥Œªπ‘≠ ß∞‹£®Œƒº˛ø…ƒ‹»‘±ª’º”√£©£¨÷ÿ ‘ ...
+  ping -n 3 127.0.0.1 >nul
+)
+:RESTORED
+if not defined OK (
+  echo [!] ªπ‘≠ ß∞‹£∫«Îœ» ÷∂ØÕÀ≥ˆ Tailscale Õ–≈Ã≥Ã–Ú£¨‘Ÿ“‘π‹¿Ì‘±…Ì∑›÷ÿ≈‹°£
+  pause & exit /b 1
+)
+
+explorer.exe "%DST%"
+echo “—ªπ‘≠°£
 pause
 exit /b 0
