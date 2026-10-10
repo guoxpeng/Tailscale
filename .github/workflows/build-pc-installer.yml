@@ -122,6 +122,15 @@ jobs:
           Copy-Item build\patch-report.txt     release\
           Copy-Item tools\zh_win.tsv           release\
           Copy-Item scripts\install_zh.bat     release\
+          # 生成校验清单，方便下载后核对文件完整性
+          $lines = Get-ChildItem release -File |
+                   Where-Object { $_.Name -ne 'SHA256SUMS.txt' } |
+                   Sort-Object Name |
+                   ForEach-Object {
+                     $h = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
+                     "$h  $($_.Name)"
+                   }
+          $lines | Out-File -FilePath release\SHA256SUMS.txt -Encoding ascii
           Get-ChildItem release | Format-Table Name, Length
 
       - name: Upload artifacts
@@ -136,6 +145,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: Tailscale Windows 汉化 ${{ env.TS_VERSION }}
+          # 默认 false 会静默建出「没有资产」的空 Release，这里必须显式开启
+          fail_on_unmatched_files: true
+          draft: false
+          prerelease: false
           generate_release_notes: false
           body: |
             Tailscale **Windows** 界面汉化版，基于官方 ${{ env.TS_VERSION }} 二进制做偏移补丁（47 条界面文案）。
@@ -147,6 +160,7 @@ jobs:
             | `install_zh.bat` | 一键安装 / 还原脚本（`install_zh.bat restore` 还原） |
             | `patch-report.txt` | 逐条补丁明细（保长替换 / 扩容 / 冲突拒绝） |
             | `zh_win.tsv` | 47 条中英对照表 |
+            | `SHA256SUMS.txt` | 上述文件的 SHA256 校验清单（`certutil -hashfile <文件> SHA256` 比对） |
 
             说明：
 
