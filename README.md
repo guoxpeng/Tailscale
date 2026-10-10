@@ -34,23 +34,28 @@
 
 ## 下载安装
 
-从 [Releases](../../releases) 下载最新 APK（文件名形如 `Tailscale-zh-1.104.1.apk`）。
+从 [Releases](https://github.com/guoxpeng/tailscale-zh/releases/tag/v1.104.1) 下载最新 APK
+（文件名形如 `Tailscale-zh-1.104.1.apk`）。
 
-> ℹ️ 这个仓库的 Releases 页同时挂着 **Windows 汉化安装包**（`Tailscale-zh-*-setup.exe`），
-> 两类文件按发布时间混排，认准扩展名即可。
+> ℹ️ **每个 Release 里同时挂着 Windows 与 Android 两个安装包** ——
+> `Tailscale-zh-*-setup.exe`（Windows 一体化安装包）与 `Tailscale-zh-*.apk`（本端），
+> 按扩展名取自己需要的那个即可。两条流水线写同一个 Release（标签 `v<版本号>`），
+> 各自只覆盖自己那个文件。
 
 > ⚠️ 安装前需卸载官方版 Tailscale（签名不同），安装后重新登录。
 
 ## 自动打包与发布
 
-只需打一个标签，GitHub Actions 就会自动构建**全架构 APK** 并发布到 Releases：
+只需打一个标签，GitHub Actions 就会自动构建**全架构 APK** 并写进对应版本的 Release：
 
 ```bash
 git tag android-v1.104.1          # 标签格式：android-v<版本号>
 git push origin android-v1.104.1
 ```
 
-- 每次发布**只挂一个 apk**（全架构：arm64-v8a + armeabi-v7a + x86 + x86_64）。
+- 发版标签是 **`v<版本号>`**（如 `v1.104.1`）—— 与 Windows 侧**共用同一个 Release**，
+  所以打开该 Release 能同时看到 apk 与 exe；本流水线只覆盖 apk，不动 exe。
+- 每次发布只追加**一个 apk**（全架构：arm64-v8a + armeabi-v7a + x86 + x86_64）。
 - 也可以在仓库 Actions 页面手动触发：只构建并保存产物，不发布 Release。
 - 签名用的是仓库内 [`.ci/android-debug.keystore`](.ci/) 这把**固定调试密钥**，
   因此各版本签名一致，用户可**直接覆盖安装升级**，不必反复卸载重装。
@@ -59,7 +64,8 @@ git push origin android-v1.104.1
 
 ## 发布历史
 
-- `android-v1.104.1`：首个由 CI 自动构建发布的版本（全架构、固定签名）。
+- `v1.104.1`：统一发版标签 —— 同一个 Release 里同时挂着 Windows 安装包与 Android APK。
+  （此前的 `android-v1.104.1`、`v3-fix`、`v1.104.1-zh` 等单端 Release 已合并/下线，标签保留。）
 
 ## 本地构建
 

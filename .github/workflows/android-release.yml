@@ -1,8 +1,12 @@
 name: 构建安卓汉化 APK
 
 # 这里是安卓侧唯一的构建入口。
-# 打 android-v* 标签 → 构建全架构 APK → 发布到 Releases（只挂一个文件）。
+# 打 android-v* 标签 → 构建全架构 APK → 发布到 Releases。
 # 手动触发（workflow_dispatch）只构建并上传 Actions 产物，不发布 Release。
+#
+# 发版约定：统一发到 Release 标签 `v<版本号>`（= android/build.gradle 的 versionName）。
+# Windows 侧（pc 分支的 build-pc-installer.yml）也写同一个 Release，
+# 因此一个 Release 页面里同时有 Android APK 与 Windows 安装包。
 
 on:
   push:
@@ -104,30 +108,16 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          # 统一发版标签 = v<版本号>。Windows 侧（pc 分支的 build-pc-installer.yml）
+          # 也写**同一个** Release，所以一个 Release 页面里同时有 exe 与 apk。
+          # 打 android-v* 标签只触发本流水线（Android），它只覆盖 apk，不会动 exe。
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: Tailscale 汉化版 ${{ steps.ver.outputs.version }}（Windows + Android）
+          target_commitish: ${{ github.sha }}
+          # 同名资产直接覆盖，方便同版本重跑
+          overwrite_files: true
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+          body_path: .github/release-notes.md
           files: Tailscale-zh-${{ steps.ver.outputs.version }}.apk
-          body: |
-            Tailscale **安卓**汉化版 · 基于官方 ${{ steps.ver.outputs.version }} Go 核心构建。
-
-            本页**只挂一个文件**：
-
-            ### `Tailscale-zh-${{ steps.ver.outputs.version }}.apk`
-
-            > ✅ **全架构版**（arm64-v8a + armeabi-v7a + x86 + x86_64），新老机型与模拟器都能装。
-            > 已用固定密钥签名，**后续新版本可直接覆盖安装升级**，不用再卸载。
-
-            **安装**：先卸载官方版 Tailscale（签名不同，装不上），再安装本包并重新登录。
-
-            自带功能：
-
-            - **代理模式**：把 Tailscale 当本地 SOCKS5 / HTTP 代理跑，无需 VPN 权限
-              （SOCKS5 `127.0.0.1:1080` · HTTP `127.0.0.1:8080`），可与 Clash 等共存
-            - **内置浏览器**：不用配代理就能访问 tailnet 上的 HTTP/FTP 服务
-            - **分流模式**：只路由 Tailscale 流量（100.64.0.0/10），其余走系统默认路由
-            - **完整中文界面**：500+ 界面字符串全中文
-
-            说明：
-
-            - 只修改客户端界面与上述附加功能，**不改动** Tailscale 服务端。
-            - 本包为调试签名（与官方签名不同，因此必须卸载官方版才能安装）。
-            - 从早期手工构建的版本（如 `v3-fix`）升级，需要**先卸载一次**；
-              从本版之后，各版本之间可直接覆盖安装。
