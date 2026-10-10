@@ -1,0 +1,133 @@
+name: 构建安卓汉化 APK
+
+# 这里是安卓侧唯一的构建入口。
+# 打 android-v* 标签 → 构建全架构 APK → 发布到 Releases（只挂一个文件）。
+# 手动触发（workflow_dispatch）只构建并上传 Actions 产物，不发布 Release。
+
+on:
+  push:
+    tags:
+      - 'android-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: 构建并发布
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: 安装 Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 安装 Android SDK 与 NDK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+          mkdir -p /opt/android-sdk
+          cd /opt/android-sdk
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/bin cmdline-tools/lib cmdline-tools/latest/
+          yes | cmdline-tools/latest/bin/sdkmanager --licenses
+          cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;25.2.9519653"
+          echo "ANDROID_HOME=/opt/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> $GITHUB_ENV
+          echo "/opt/android-sdk/platform-tools" >> $GITHUB_PATH
+          echo "/opt/android-sdk/build-tools/34.0.0" >> $GITHUB_PATH
+
+      # 用仓库里固定的调试密钥签名，而不是每次随机生成：
+      # 随机密钥会导致每个版本的签名都不同，用户无法覆盖安装升级。
+      # 这是 Android 调试密钥（口令固定为公开的 android），不用于上架，无泄露风险。
+      - name: 安装固定调试签名密钥
+        run: |
+          mkdir -p $HOME/.android
+          cp .ci/android-debug.keystore $HOME/.android/debug.keystore
+          keytool -list -keystore $HOME/.android/debug.keystore -storepass android | grep androiddebugkey
+
+      - name: 读取版本号
+        id: ver
+        run: |
+          v=$(grep -oP 'versionName\s+"\K[^"]+' android/build.gradle | head -1)
+          echo "version=$v" >> $GITHUB_OUTPUT
+          echo "本次版本号: $v"
+
+      - name: 清理
+        run: make clean
+
+      - name: 构建 libtailscale
+        run: make libtailscale
+
+      # 不传 -PslimBuild，即构建全架构（arm64-v8a / armeabi-v7a / x86 / x86_64）。
+      - name: 构建全架构 APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --stacktrace
+          cp build/outputs/apk/debug/android-debug.apk "../Tailscale-zh-${{ steps.ver.outputs.version }}.apk"
+          ls -lh "../Tailscale-zh-${{ steps.ver.outputs.version }}.apk"
+
+      - name: 校验签名与版本信息
+        run: |
+          apk="Tailscale-zh-${{ steps.ver.outputs.version }}.apk"
+          echo "===== 签名 ====="
+          /opt/android-sdk/build-tools/34.0.0/apksigner verify --verbose "$apk"
+          echo "===== 包信息 ====="
+          /opt/android-sdk/build-tools/34.0.0/aapt dump badging "$apk" \
+            | grep -E "^package|^sdkVersion|^targetSdkVersion|^native-code|^application-label:"
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: tailscale-zh-apk-${{ steps.ver.outputs.version }}
+          path: Tailscale-zh-${{ steps.ver.outputs.version }}.apk
+          retention-days: 30
+
+      - name: 发布到 Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Tailscale-zh-${{ steps.ver.outputs.version }}.apk
+          body: |
+            Tailscale **安卓**汉化版 · 基于官方 ${{ steps.ver.outputs.version }} Go 核心构建。
+
+            本页**只挂一个文件**：
+
+            ### `Tailscale-zh-${{ steps.ver.outputs.version }}.apk`
+
+            > ✅ **全架构版**（arm64-v8a + armeabi-v7a + x86 + x86_64），新老机型与模拟器都能装。
+            > 已用固定密钥签名，**后续新版本可直接覆盖安装升级**，不用再卸载。
+
+            **安装**：先卸载官方版 Tailscale（签名不同，装不上），再安装本包并重新登录。
+
+            自带功能：
+
+            - **代理模式**：把 Tailscale 当本地 SOCKS5 / HTTP 代理跑，无需 VPN 权限
+              （SOCKS5 `127.0.0.1:1080` · HTTP `127.0.0.1:8080`），可与 Clash 等共存
+            - **内置浏览器**：不用配代理就能访问 tailnet 上的 HTTP/FTP 服务
+            - **分流模式**：只路由 Tailscale 流量（100.64.0.0/10），其余走系统默认路由
+            - **完整中文界面**：500+ 界面字符串全中文
+
+            说明：
+
+            - 只修改客户端界面与上述附加功能，**不改动** Tailscale 服务端。
+            - 本包为调试签名（与官方签名不同，因此必须卸载官方版才能安装）。
+            - 从早期手工构建的版本（如 `v3-fix`）升级，需要**先卸载一次**；
+              从本版之后，各版本之间可直接覆盖安装。

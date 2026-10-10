@@ -1,12 +1,13 @@
 name: Android CI
 
+# 上游自带的检查流程（Go 测试 + 构建 + 用例测试）。
+# 它以前每次推送到 main 都会自动跑，但长期失败（上游用例与本地改动不兼容），
+# 既吵又占额度，因此取消 push 自动触发，只在 PR 或手动触发时运行。
+# 发布 APK 由 android-release.yml 负责，不要再往这里加构建/发布逻辑。
 on:
-  push:
-    branches:
-      - main
-      - "release-branch/*"
   pull_request:
     # all PRs on all branches
+  workflow_dispatch:
 
 jobs:
   build:

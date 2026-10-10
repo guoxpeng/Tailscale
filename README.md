@@ -34,13 +34,32 @@
 
 ## 下载安装
 
-从 [Releases](../../releases) 下载最新 APK。
+从 [Releases](../../releases) 下载最新 APK（文件名形如 `Tailscale-zh-1.104.1.apk`）。
+
+> ℹ️ 这个仓库的 Releases 页同时挂着 **Windows 汉化安装包**（`Tailscale-zh-*-setup.exe`），
+> 两类文件按发布时间混排，认准扩展名即可。
 
 > ⚠️ 安装前需卸载官方版 Tailscale（签名不同），安装后重新登录。
 
-## 自动打包
+## 自动打包与发布
 
-推送到 `main` 分支或打 tag 时，GitHub Actions 自动构建 APK 并上传到 Releases。
+只需打一个标签，GitHub Actions 就会自动构建**全架构 APK** 并发布到 Releases：
+
+```bash
+git tag android-v1.104.1          # 标签格式：android-v<版本号>
+git push origin android-v1.104.1
+```
+
+- 每次发布**只挂一个 apk**（全架构：arm64-v8a + armeabi-v7a + x86 + x86_64）。
+- 也可以在仓库 Actions 页面手动触发：只构建并保存产物，不发布 Release。
+- 签名用的是仓库内 [`.ci/android-debug.keystore`](.ci/) 这把**固定调试密钥**，
+  因此各版本签名一致，用户可**直接覆盖安装升级**，不必反复卸载重装。
+
+> ⚠️ 从早期手工构建的版本（如 `v3-fix`）升级仍需**先卸载一次**，之后就不会再有这个问题。
+
+## 发布历史
+
+- `android-v1.104.1`：首个由 CI 自动构建发布的版本（全架构、固定签名）。
 
 ## 本地构建
 
