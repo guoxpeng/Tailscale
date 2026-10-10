@@ -3,8 +3,9 @@
 > ✅ **现已一体化：安装包自带官方 Tailscale 1.104.1 组件，无需预装。**
 
 **下载**：打开 [**Releases**](https://github.com/guoxpeng/tailscale-zh/releases) 取最新标签
-（当前 `pc-v1.104.1-fix`）下的 `Tailscale-zh-1.104.1-setup.exe`。
-CI 每次推送都会重新构建，Release 资产与源码逐字节对应。
+（当前 `pc-v1.104.1-fix`）。**每个 Release 只挂一个文件** ——
+`Tailscale-zh-1.104.1-setup.exe`（PC 版）/ 对应的 `.apk`（Android 版），
+其余材料都在仓库源码里。CI 每次推送都会重新构建，Release 资产与源码逐字节对应。
 
 > - **没装过 Tailscale 的电脑**：直接装本包即可 —— 会先**静默**装好官方组件
 >   （`msiexec /qn`，全程无界面、无英文向导、无弹窗），再把界面换成中文版。
@@ -54,13 +55,13 @@ CI 每次推送都会重新构建，Release 资产与源码逐字节对应。
 4. 重新运行 C:\Program Files\Tailscale\tailscale-ipn.exe
 ```
 
-仓库里的 [`prebuilt/tailscale-ipn.zh.exe`](prebuilt/) 是成品副本，可直接下载使用；
-其 SHA256 见同目录 `SHA256SUMS.txt`，与 CI 从同一源码构建出的产物逐字节一致
-（因此如果你要的是「确定能跑」的那份，Release 里的 `tailscale-ipn.zh.exe` 与它完全相同）。
+仓库里的 [`prebuilt/tailscale-ipn.zh.exe`](prebuilt/) 是成品副本，从仓库直接下载即可；
+其 SHA256 见同目录 `SHA256SUMS.txt`，与 CI 从同一源码构建出的产物逐字节一致。
 
 ### 方式 C：一键脚本
 
-下载 Release 里的 `install_zh.bat`，与 `tailscale-ipn.zh.exe` 放在**同一目录**，
+下载仓库里的 [`scripts/install_zh.bat`](scripts/install_zh.bat) 与
+[`prebuilt/tailscale-ipn.zh.exe`](prebuilt/) 放到**同一目录**，
 **右键 → 以管理员身份运行**即可；`install_zh.bat restore` 还原官方原版。
 
 脚本会先把官方原版备份为 `tailscale-ipn.exe.orig`（若你之前用过旧版脚本，
@@ -161,6 +162,11 @@ inno\ISCC.exe installer\tailscale-zh.iss
 自动下载官方 MSI → 校验 SHA256 → 打补丁 → 校验产物 → 装 Inno Setup 6.7.3 → 编译安装包 → 上传 Artifact。
 打 `pc-v*` 标签时额外发布 Release。
 
+**Release 只挂一个文件**：向导式安装包 `Tailscale-zh-1.104.1-setup.exe`。汉化主程序、
+中英对照表、补丁明细、一键脚本都在仓库源码里，不重复上传；单个文件的 `sha256`
+由 GitHub 直接标在资产上。（页面下方自动出现的 `Source code (zip/tar.gz)` 是 GitHub
+为每个 Release 强制的源码快照，无法删除，任何仓库都一样。）
+
 CI 会在**源文件哈希不符**时直接失败（不会产出错误的包），因此 Tailscale 换版后不会静默出错。
 
 ---
@@ -174,7 +180,7 @@ CI 会在**源文件哈希不符**时直接失败（不会产出错误的包）�
 │   ├── tailscale-zh.iss                       Inno Setup 安装包脚本
 │   └── ChineseSimplified.isl                  安装向导简中语言包（取自 issrc 同版本 tag）
 ├── scripts/install_zh.bat                     一键安装 / 还原脚本
-├── prebuilt/tailscale-ipn.zh.exe              已实机验证的成品（含 SHA256SUMS.txt）
+├── prebuilt/tailscale-ipn.zh.exe              成品副本（含 SHA256SUMS.txt）
 ├── tools/
 │   ├── build.py                               构建入口（含源/产物 SHA256 校验）
 │   ├── patch_zh.py                            汉化补丁器（核心）
@@ -219,6 +225,10 @@ CI 会在**源文件哈希不符**时直接失败（不会产出错误的包）�
   弹窗确认，避免把不同版本的界面程序与 `tailscaled` 服务混用。
 
 **汉化条目**：47 → **118 条**（保长替换 102 + 扩容 16，扩容区 323/504 字节）。
+
+**Release 精简**：每个 Release 只挂**一个文件**（PC 版 = 安装包 exe，Android 版 = apk）。
+汉化主程序、对照表、补丁明细、一键脚本一律只留在仓库里，不再重复上传；
+文件校验值由 GitHub 直接标在资产上，取消了单独的 `SHA256SUMS.txt`。
 
 **刻意不收录**：`A request to sign the following device...` 看着像界面文案，实际是一条
 更长的 Go 模板字面量（后方还接着 `{{.OSName}}<a href=...>`）。按句号截断替换会破坏模板渲染，
