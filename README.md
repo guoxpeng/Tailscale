@@ -2,10 +2,16 @@
 
 > ✅ **现已一体化：安装包自带官方 Tailscale 1.104.1 组件，无需预装。**
 
-**下载**：打开 [**Releases**](https://github.com/guoxpeng/tailscale-zh/releases) 取最新标签
-（当前 `pc-v1.104.1-fix`）。**每个 Release 只挂一个文件** ——
-`Tailscale-zh-1.104.1-setup.exe`（PC 版）/ 对应的 `.apk`（Android 版），
-其余材料都在仓库源码里。CI 每次推送都会重新构建，Release 资产与源码逐字节对应。
+**下载**：打开 [**Releases**](https://github.com/guoxpeng/tailscale-zh/releases/tag/v1.104.1) ——
+**每个 Release 里同时挂着 Windows 与 Android 两个安装包**：
+
+| 端 | 文件 | 说明 |
+| --- | --- | --- |
+| 🖥️ Windows | `Tailscale-zh-<版本>-setup.exe` | 本仓库（`pc` 分支）产出 · 一体化向导安装包，内嵌官方组件 |
+| 📱 Android | `Tailscale-zh-<版本>.apk` | `main` 分支产出 · 全架构 APK |
+
+两条流水线都写**同一个** Release（标签 `v<版本号>`），各自只覆盖自己那个文件、
+不动另一端的安装包；其余材料都在仓库源码里。CI 每次推送都会重新构建，Release 资产与源码逐字节对应。
 
 > - **没装过 Tailscale 的电脑**：直接装本包即可 —— 会先**静默**装好官方组件
 >   （`msiexec /qn`，全程无界面、无英文向导、无弹窗），再把界面换成中文版。
@@ -160,10 +166,15 @@ inno\ISCC.exe installer\tailscale-zh.iss
 
 `.github/workflows/build-pc-installer.yml`：推送到 `pc` 分支（或手动触发 `workflow_dispatch`）时，
 自动下载官方 MSI → 校验 SHA256 → 打补丁 → 校验产物 → 装 Inno Setup 6.7.3 → 编译安装包 → 上传 Artifact。
-打 `pc-v*` 标签时额外发布 Release。
+打 `pc-v*` 标签时额外发版，且**统一发到 Release 标签 `v<版本号>`**（例如 `v1.104.1`）。
 
-**Release 只挂一个文件**：向导式安装包 `Tailscale-zh-1.104.1-setup.exe`。汉化主程序、
-中英对照表、补丁明细、一键脚本都在仓库源码里，不重复上传；单个文件的 `sha256`
+**发版约定：一个 Release = 一个版本 = 两个安装包。** Windows 流水线（`pc` 分支，`pc-v*` 标签）
+与 Android 流水线（`main` 分支，`android-v*` 标签）各自往**同一个** `v<版本号>` Release 里写资产，
+所以打开任意一个 Release 都能同时看到 `Tailscale-zh-<版本>-setup.exe` 与 `Tailscale-zh-<版本>.apk`；
+重跑只会覆盖同名文件（`overwrite_files: true`），另一端的包保持不动。Release 说明统一取自
+[`.github/release-notes.md`](.github/release-notes.md)，避免两条流水线各写一份。
+
+汉化主程序、中英对照表、补丁明细、一键脚本都在仓库源码里，不重复上传；文件的 `sha256`
 由 GitHub 直接标在资产上。（页面下方自动出现的 `Source code (zip/tar.gz)` 是 GitHub
 为每个 Release 强制的源码快照，无法删除，任何仓库都一样。）
 
@@ -226,9 +237,10 @@ CI 会在**源文件哈希不符**时直接失败（不会产出错误的包）�
 
 **汉化条目**：47 → **118 条**（保长替换 102 + 扩容 16，扩容区 323/504 字节）。
 
-**Release 精简**：每个 Release 只挂**一个文件**（PC 版 = 安装包 exe，Android 版 = apk）。
-汉化主程序、对照表、补丁明细、一键脚本一律只留在仓库里，不再重复上传；
-文件校验值由 GitHub 直接标在资产上，取消了单独的 `SHA256SUMS.txt`。
+**Release 结构**：**一个 Release 同时挂两个端的安装包**（Windows = 安装包 exe，Android = apk），
+两条流水线写同一个 `v<版本号>` 标签，各自只覆盖自己的文件。汉化主程序、对照表、补丁明细、
+一键脚本一律只留在仓库里，不再重复上传；文件校验值由 GitHub 直接标在资产上，
+取消了单独的 `SHA256SUMS.txt`。
 
 **刻意不收录**：`A request to sign the following device...` 看着像界面文案，实际是一条
 更长的 Go 模板字面量（后方还接着 `{{.OSName}}<a href=...>`）。按句号截断替换会破坏模板渲染，

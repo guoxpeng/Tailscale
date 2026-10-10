@@ -3,6 +3,10 @@ name: Build PC (Windows) Chinese Installer
 # 推送到 pc 分支、打 pc-v* 标签、或手动触发时：
 #   拉官方 MSI → 解出原始 tailscale-ipn.exe → 校验 SHA256 → 打汉化补丁
 #   → 校验产物 → Inno Setup 编译向导式安装包 → 上传 Artifact（打标签时发 Release）
+#
+# 发版约定：只有打 pc-v* 标签才发版，且统一发到 Release 标签 `v<版本号>`（= v$TS_VERSION）。
+# Android 侧（main 分支的 android-release.yml）也写同一个 Release，
+# 因此一个 Release 页面里同时有 Windows 安装包与 Android APK。
 
 on:
   push:
@@ -117,7 +121,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Remove-Item -Recurse -Force release -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force release | Out-Null
-          # Release 只挂一个文件：向导式安装包（已内嵌官方组件）。
+          # Release 里本流水线只负责追加 exe：向导式安装包（已内嵌官方组件）。
           # 汉化主程序 / 对照表 / 补丁明细 / 一键脚本都在仓库里，不重复上传；
           # 文件的 sha256 由 GitHub 直接标在资产上，也无需另附校验清单。
           Copy-Item dist\*.exe release\
@@ -134,33 +138,18 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/pc-v')
         uses: softprops/action-gh-release@v2
         with:
-          name: Tailscale Windows 汉化 ${{ env.TS_VERSION }}
+          # 统一发版标签 = v<版本号>。Windows 与 Android 两条流水线都写**同一个** Release，
+          # 所以 release 页面里永远同时挂着 exe 与 apk 两个安装包。
+          # 打 pc-v* 标签只触发本流水线（Windows），它只覆盖 exe，不会动 apk。
+          tag_name: v${{ env.TS_VERSION }}
+          name: Tailscale 汉化版 ${{ env.TS_VERSION }}（Windows + Android）
+          target_commitish: ${{ github.sha }}
           # 默认 false 会静默建出「没有资产」的空 Release，这里必须显式开启
           fail_on_unmatched_files: true
+          # 同名资产直接覆盖，方便同版本重跑
+          overwrite_files: true
           draft: false
           prerelease: false
           generate_release_notes: false
-          body: |
-            Tailscale **Windows** 界面汉化版，基于官方 ${{ env.TS_VERSION }} 二进制做偏移补丁（118 条界面文案）。
-
-            本页**只挂一个文件**：
-
-            ### `Tailscale-zh-${{ env.TS_VERSION }}-setup.exe`
-
-            > ✅ **一体化安装包**，已内嵌官方 ${{ env.TS_VERSION }} 组件 ——
-            > **没装过 Tailscale 的电脑，直接装本包即可**：安装器会先用官方 MSI 静默装好完整组件
-            > （`msiexec /qn`，无英文向导、无弹窗），再把界面换成中文版。
-            > 已装 1.104.1 的电脑会自动跳过官方安装，只替换界面程序。
-
-            **用法**：右键 → **以管理员身份运行**。卸载「Tailscale 中文汉化」即自动还原官方界面程序。
-
-            说明：
-
-            - 只替换托盘 / 主界面程序 `tailscale-ipn.exe`，**不改动** `tailscaled` 服务与 WinTun 驱动。
-            - 汉化范围含主面板、设置、出口节点、托盘提示、通知气泡、Taildrop 文件传输、
-              更新提示、管理员批准/签署，以及**无人值守 / 出口节点确认对话框**。
-            - 汉化后官方数字签名失效，Windows 可能提示「未知发布者」。
-            - Tailscale 自动更新会覆盖汉化，建议在「设置」中取消勾选「自动安装&更新」。
-            - 单个文件的 `sha256` 已由 GitHub 直接标在资产上；需要汉化主程序 / 中英对照表 /
-              补丁明细 / 一键脚本，见[仓库源码](https://github.com/guoxpeng/tailscale-zh)。
+          body_path: .github/release-notes.md
           files: release/*
