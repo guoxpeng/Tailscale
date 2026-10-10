@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Tailscale Windows 界面汉化补丁器 v5
-= v3（保长替换为主 + 扩容）+ 一条「重叠字面量」否定检查：
+"""Tailscale Windows 界面汉化补丁器 v6
+= v5（保长替换 + 扩容 + 重叠字面量否定检查）+ 一条对照表转义解析：
 
-  v3 的位点判定为「该地址存在 LEAQ，且其后 ±96 字节内有 MOV imm == 英文长度」。
-  该窗口过宽，会把无关常量（如 11）误当长度，导致「处于更长字面量内部的子串」
-  被就地覆盖。典型：字面量 PreferencesMenu(15) 的前 11 字节被当成 Preferences(11)
-  改写，破坏了 syspolicy 指标名 -> Go panic。
+  v6 新增：对照表的英文/中文列支持 \\r \\n \\t \\\\ \\xHH 转义。
+  原因：Unattended Mode / Exit node 两个确认框的正文本身就是**一条含
+  \\r\\n\\r\\n 的多行长字符串**，TSV 是逐行解析的，没法直接写换行；
+  行尾空格（如 "Connected - "）也容易被编辑器吞掉，故一并支持 \\x20。
 
-  v5 增加：对某地址的每条 LEAQ，取其【紧随其后 3 条指令内首个 MOV reg,imm】作为
-  该处的“声明长度”；只要存在一条声明长度 != 本串长度，就拒绝该位置。
-  这样 PreferencesMenu 会被拒（声明 15 != 11），而真正的 Preferences 保留。
+  按 UTF-8 字节数比较长度，中文 ≤ 英文即可保长替换（补空格）；
+  超出才走 .rsrc 尾部零填充扩容区，并把 LEAQ disp32 重定向过去。
 
-用法: py313 patch_zh5.py <in.exe> <out.exe> <zh_map.tsv> [report.txt]
+用法: py313 patch_zh.py <in.exe> <out.exe> <zh_map.tsv> [report.txt]
 """
 import struct
 import sys
@@ -152,6 +151,37 @@ def alloc(buf):
     return va
 
 
+def unesc(s):
+    """还原对照表里的转义写法。
+
+    多行对话框文案（如 Unattended Mode 确认框）本身带 \\r\\n，无法直接写进
+    以换行分行的 TSV；行尾空格也容易被编辑器吞掉，所以统一用转义表示：
+        \\r  \\n  \\t  \\\\  \\xHH（HH 为两位十六进制，用于行尾空格等）
+    不认识的转义按原样保留，保证老表里的普通反斜杠不被误改。
+    """
+    out = []
+    i = 0
+    simple = {'r': '\r', 'n': '\n', 't': '\t', '\\': '\\'}
+    while i < len(s):
+        c = s[i]
+        if c == '\\' and i + 1 < len(s):
+            n = s[i + 1]
+            if n in simple:
+                out.append(simple[n])
+                i += 2
+                continue
+            if n == 'x' and i + 3 < len(s) + 1 and len(s) >= i + 4:
+                try:
+                    out.append(chr(int(s[i + 2:i + 4], 16)))
+                    i += 4
+                    continue
+                except ValueError:
+                    pass
+        out.append(c)
+        i += 1
+    return ''.join(out)
+
+
 entries = []
 for line in io.open(mapfile, encoding='utf-8-sig'):
     line = line.rstrip('\r\n')
@@ -159,7 +189,7 @@ for line in io.open(mapfile, encoding='utf-8-sig'):
         continue
     p = line.split('\t')
     if len(p) == 2:
-        entries.append((p[0], p[1]))
+        entries.append((unesc(p[0]), unesc(p[1])))
 
 log = io.open(report_path, 'w', encoding='utf-8', newline='\n') if report_path else None
 

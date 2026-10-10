@@ -40,7 +40,8 @@ ORIG_SHA256 = "0c3c56a6626c9f71a32fb307dbda0c810c94a89d66fed158258da6f043004f9c"
 ORIG_SIZE = 29622776
 
 # 用 tools/zh_win.tsv 打补丁后的确定性产物
-OUT_SHA256 = "6766b4cda4b9042df7e74e842de19afa29a7256047c8044a316fd340de920936"
+# （v5 对照表：118 条生效 = 保长 102 + 扩容 16；改动汉化表后此值必须同步更新）
+OUT_SHA256 = "cc527deb8573bd404e3b23da0279cfa4efac85babbffaaaeb6e1d3094406b4d5"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PATCHER = os.path.join(HERE, "patch_zh.py")

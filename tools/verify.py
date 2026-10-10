@@ -87,6 +87,36 @@ def diffs(a, b):
     return out
 
 
+def unesc(s):
+    """与 patch_zh.py 完全一致的转义还原（\\r \\n \\t \\\\ \\xHH）。
+
+    多行对话框文案（Unattended / Exit node 确认框）本身就是一条含
+    \\r\\n\\r\\n 的长字符串，TSV 里只能用转义书写；行尾空格用 \\x20。
+    两边实现必须保持一致，否则校验器会把已落位的条目误判为「未落位」。
+    """
+    out = []
+    i = 0
+    simple = {"r": "\r", "n": "\n", "t": "\t", "\\": "\\"}
+    while i < len(s):
+        c = s[i]
+        if c == "\\" and i + 1 < len(s):
+            n = s[i + 1]
+            if n in simple:
+                out.append(simple[n])
+                i += 2
+                continue
+            if n == "x" and len(s) >= i + 4:
+                try:
+                    out.append(chr(int(s[i + 2:i + 4], 16)))
+                    i += 4
+                    continue
+                except ValueError:
+                    pass
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
 def load_table(path):
     rows = []
     for line in io.open(path, encoding="utf-8-sig"):
@@ -95,7 +125,7 @@ def load_table(path):
             continue
         p = line.split("\t")
         if len(p) == 2:
-            rows.append((p[0], p[1]))
+            rows.append((unesc(p[0]), unesc(p[1])))
     return rows
 
 

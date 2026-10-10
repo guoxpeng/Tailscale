@@ -1,4 +1,4 @@
-源: tailscale-ipn.orig.exe (29622776 字节)   扩容区 VA=0x143ca4e08 大小=504
+源: tailscale-ipn.exe.orig (29622776 字节)   扩容区 VA=0x143ca4e08 大小=504
 
 OK    Connected                        -> 已连接                9->9 字节  副本=1
 OK    Connected. Click for options.    -> 已连接，点击查看           29->24 字节  副本=1  [无静态引用,唯一副本→保长替换]
@@ -47,8 +47,91 @@ OK    IP address                       -> IP 地址              10->9 字节  �
 OK    Managed by                       -> 管理方                10->9 字节  副本=1
 OK    Expiration                       -> 有效期                10->9 字节  副本=1
 OK    Web client                       -> 网页端                10->9 字节  副本=1
+GROW  Bug report...                    -> 问题反馈...            13->15 字节  新VA=0x143ca4e33  改动=1
+GROW  Open with...                     -> 打开方式...            12->15 字节  新VA=0x143ca4e42  改动=1
+OK    Update Tailscale                 -> 更新 Tailscale       16->16 字节  副本=1
+OK    Send with Tailscale              -> Tailscale 发送       19->16 字节  副本=1
+OK    Recently Used                    -> 最近使用               13->12 字节  副本=1
+OK    &Renew session...                -> &续期会话...           17->16 字节  副本=1
+OK    &Update available...             -> &有更新可用...          20->19 字节  副本=1
+GROW  Use &Notepad for URLs            -> 用&记事本打开链接          21->25 字节  新VA=0x143ca4e51  改动=1
+OK    Start &Onboarding Test...        -> 开始&入门测试...         25->22 字节  副本=1
+OK    All Services                     -> 所有服务               12->12 字节  副本=1
+GROW  Location-based exit nodes        -> 基于位置的出口节点          25->27 字节  新VA=0x143ca4e6a  改动=1
+OK    No exit node available           -> 无可用出口节点            22->21 字节  副本=1
+GROW  No files to send                 -> 无文件可发送             16->18 字节  新VA=0x143ca4e85  改动=1
+GROW  Ready to send 1 file             -> 准备发送 1 个文件         20->24 字节  新VA=0x143ca4e97  改动=1
+GROW  Ready to send %d files           -> 准备发送 %d 个文件        22->25 字节  新VA=0x143ca4eaf  改动=1
+OK    Connecting...                    -> 连接中...             13->12 字节  副本=1
+OK    Connection lost                  -> 连接已断开              15->15 字节  副本=1
+OK    Connection State                 -> 连接状态               16->12 字节  副本=1
+OK    You are logged out.              -> 您已注销。              19->15 字节  副本=1
+GROW  You're up to date.               -> 已是最新版本。            18->21 字节  新VA=0x143ca4ec8  改动=1
+OK    Unknown profile                  -> 未知配置               15->12 字节  副本=1
+OK    Unable to set up tray            -> 无法初始化托盘            21->21 字节  副本=1
+GROW   Click to reauth.                ->  点击重新认证。           17->22 字节  新VA=0x143ca4edd  改动=1
+GROW  Tailscale: %s.                   -> Tailscale: %s。     14->16 字节  新VA=0x143ca4ef3  改动=1
+OK    Tailscale: Please log in.        -> Tailscale: 请登录。    25->23 字节  副本=1
+OK    Tailscale: Disconnected. Click to connect. -> Tailscale: 未连接，点击连接 42->35 字节  副本=1
+GROW  Tailscale: in use by other user  -> Tailscale: 其他用户正在使用 31->35 字节  新VA=0x143ca4f03  改动=1
+OK    Tailscale: A tailnet administrator has not signed this device. -> Tailscale: 网络管理员尚未签署此设备。 62->50 字节  副本=1
+OK    Tailscale: Server has not approved this device. -> Tailscale: 服务器尚未批准此设备。 47->44 字节  副本=1
+GROW  Tailscale Error                  -> Tailscale 错误       15->16 字节  新VA=0x143ca4f26  改动=2
+OK    Tailscale Update Available       -> Tailscale 有可用更新    26->25 字节  副本=1
+OK    Tailscale Authentication Needed  -> Tailscale 需要认证     31->22 字节  副本=1
+OK    Click the Tailscale icon to log in. -> 点击 Tailscale 图标登录。 35->32 字节  副本=1
+OK    Click this notification to refresh your login session. -> 点击此通知以刷新登录会话。      54->39 字节  副本=1
+OK    Your network login will expire soon -> 您的网络登录即将过期         35->30 字节  副本=1
+OK    Your organization settings require you to use an exit node. -> 组织设置要求您使用出口节点。     59->42 字节  副本=1
+OK    Some features might have been customized or hidden by your system administrator. -> 部分功能可能已被系统管理员自定义或隐藏。 80->60 字节  副本=1
+OK    You have disabled logging. Tailscale will not be able to provide support. -> 您已禁用日志，Tailscale 将无法提供支持。 73->55 字节  副本=1
+OK    Always-On is enabled and requires a reason to disconnect -> 已启用常开模式，断开需要理由     56->42 字节  副本=1
+OK    %s requires you to enter a reason for disconnecting. This answer will be logged. -> %s 要求您填写断开连接的理由，该答复将被记录。 80->66 字节  副本=1
+OK    Your exit node is offline. Disable your exit node or contact your network admin for help. -> 出口节点已离线。请禁用出口节点或联系网络管理员。 89->72 字节  副本=1
+OK    Your network admin needs to approve this computer to connect to the network. -> 网络管理员需要批准此计算机加入网络。 76->54 字节  副本=1
+OK    Your network admin needs to sign this computer to connect to the network. -> 网络管理员需要签署此计算机加入网络。 73->54 字节  副本=1
+OK    Your administrator approved this computer, and it is now connecting to the network. -> 管理员已批准此计算机，正在连接到网络。 83->57 字节  副本=1
+OK    Your administrator signed this computer, and it is now connecting to the network. -> 管理员已签署此计算机，正在连接到网络。 81->57 字节  副本=1
+OK    Tailscale hasn't received a network map from the coordination server in %s. -> Tailscale 已 %s 未收到协调服务器的网络映射。 75->59 字节  副本=1
+OK    The MagicSock function %s is not running. You might experience connectivity issues. -> MagicSock 功能 %s 未运行，可能遇到连接问题。 83->59 字节  副本=1
+OK    A security update from version %s to %s is available. -> 有安全更新可用：%s → %s。   53->36 字节  副本=1
+OK    An update from version %s to %s is available. -> 有可用更新：%s → %s。     45->30 字节  副本=1
+OK    Support resources from %s are available on-line. -> %s 的支持资源可在线获取。     48->36 字节  副本=1
+OK    You can now access the S3 bucket. Try running: -> 现在可访问 S3 存储桶，可运行：  46->43 字节  副本=1
+OK    %s is managing Tailscale on this PC. -> %s 正在管理本机 Tailscale。 36->34 字节  副本=1
+OK    Latest %s version: %s            -> 最新 %s 版本：%s        21->21 字节  副本=1
+OK    You canceled the file transfer.  -> 您取消了文件传输。          31->27 字节  副本=1
+OK    No update information available. -> 无可用更新信息。           32->24 字节  副本=1
+OK    Removing WinTun driver...        -> 移除 WinTun 驱动...    25->23 字节  副本=1
+OK    the tray icon is hidden by the system settings. -> 托盘图标已被系统设置隐藏。      47->39 字节  副本=1
+OK    Admin Approval Needed            -> 需要管理员批准            21->21 字节  副本=1
+GROW  Admin Signing Needed             -> 需要管理员签署            20->21 字节  新VA=0x143ca4f36  改动=1
+OK    Are you sure you want to enable Unattended Mode?
 
-保长替换: 44 条    扩容: 3 条    未处理: 0 条
+In Unattended Mode, Tailscale keeps running (as your identity) when you log out of Windows and keeps running even if the machine reboots or a different user logs in. Use the Tailscale CLI to use ACL Tags and run as a non-user account. -> 确定要启用无人值守模式？
+
+在无人值守模式下，您注销 Windows 后 Tailscale 仍以您的身份继续运行，重启或换其他用户登录也不会停止。如需使用 ACL 标签并以非用户账户运行，请使用 Tailscale 命令行。 286->265 字节  副本=1
+OK    Are you sure you want to run an exit node?
+
+Running an exit node means other devices in your tailnet can send all their traffic through this computer's IP address.
+
+Note: exit nodes running on Windows are not yet optimized; see Help for details. -> 确定要运行出口节点？
+
+运行出口节点意味着网络中的其他设备可将全部流量通过本机 IP 地址发送。
+
+注意：Windows 上的出口节点尚未优化，详见帮助。 249->203 字节  副本=1
+OK    Connected -                      -> 已连接 -              12->12 字节  副本=1
+OK    Managed by %s                    -> 管理方 %s             13->12 字节  副本=1
+OK    Recommended: (Awaiting)          -> 推荐: (等待中)          23->19 字节  副本=1
+OK    Always On mode                   -> 常开模式               14->12 字节  副本=1
+OK    You are logged out. The last login error was: %v -> 您已注销。上次登录错误：%v     48->38 字节  副本=1
+OK    An update from version %s to %s is available. Run `tailscale update` or `tailscale set --auto-update` to update now. -> 有可用更新：%s → %s。请运行 `tailscale update` 或 `tailscale set --auto-update` 立即更新。 116->108 字节  副本=1
+OK    A security update from version %s to %s is available. Run `tailscale update` or `tailscale set --auto-update` to update now. -> 有安全更新：%s → %s。请运行 `tailscale update` 或 `tailscale set --auto-update` 立即更新。 124->108 字节  副本=1
+OK    Tailscale could not connect to the relay server with ID '%s'. Your Internet connection might be down, or the server might be temporarily unavailable. -> Tailscale 无法连接 ID 为 '%s' 的中继服务器。可能是网络中断，或服务器暂时不可用。 149->110 字节  副本=1
+OK    Tailscale could not connect to the '%s' relay server. Your Internet connection might be down, or the server might be temporarily unavailable. -> Tailscale 无法连接中继服务器 '%s'。可能是网络中断，或服务器暂时不可用。 141->99 字节  副本=1
+OK    You have enabled a non-default log target. Doing without being told to by Tailscale staff or your network administrator will make getting support difficult. -> 您已启用非默认的日志目标。若非 Tailscale 官方或网络管理员要求，请不要这样做，否则会给技术支持带来困难。 156->149 字节  副本=1
+
+保长替换: 102 条    扩容: 16 条    未处理: 0 条
 
 因「声明长度不符」被拒（重叠字面量保护）:
   REJECT Connected                      @0x92af2f(VA=0x14092bf2f) 声明长度=[12] != 9
@@ -61,5 +144,9 @@ OK    Web client                       -> 网页端                10->9 字节 
   REJECT Exit                           @0x937abf(VA=0x140938abf) 声明长度=[22] != 4
   REJECT Recommended:                   @0x93906a(VA=0x14093a06a) 声明长度=[23] != 13
   REJECT Managed by                     @0x92c047(VA=0x14092d047) 声明长度=[13] != 10
+  REJECT Update Tailscale               @0x930d83(VA=0x140931d83) 声明长度=[17] != 16
+  REJECT You are logged out.            @0x957406(VA=0x140958406) 声明长度=[48] != 19
+  REJECT A security update from version %s to %s is available. @0x96931a(VA=0x14096a31a) 声明长度=[124] != 53
+  REJECT An update from version %s to %s is available. @0x968b30(VA=0x140969b30) 声明长度=[116] != 45
 
-输出: work/tailscale-ipn.zh6.exe (29622776 字节)  改变字节数=698  扩容区已用 43/504
+输出: build\tailscale-ipn.zh.exe (29622776 字节)  改变字节数=4052  扩容区已用 323/504

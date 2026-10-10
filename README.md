@@ -1,17 +1,21 @@
 # Tailscale Windows 汉化
 
-> ⚠️ **这是补丁包，不是完整安装程序！**
-> **必须先装好官方原版 Tailscale 1.104.1**，再运行本汉化包。
-> **不要先卸载官方版**——安装程序需要备份原版 `tailscale-ipn.exe`，没有原版文件会直接报错中止。
+> ✅ **现已一体化：安装包自带官方 Tailscale 1.104.1 组件，无需预装。**
+>
+> - **没装过 Tailscale 的电脑**：直接装本包即可 —— 会先**静默**装好官方组件
+>   （`msiexec /qn`，全程无界面、无英文向导、无弹窗），再把界面换成中文版。
+> - **已装 Tailscale 1.104.1 的电脑**：自动跳过官方安装，直接替换界面程序。
+> - **装的是其它版本**：安装时会提示版本不匹配，由你决定是否继续。
 
 
 把 Tailscale **Windows 桌面端**（`tailscale-ipn.exe`，托盘图标与主面板）的界面文字替换成简体中文。
 
 - 基版本：**Tailscale 1.104.1 (x64)**
 - 方式：对官方二进制做**偏移补丁**（保长原地替换为主），不重新编译
-- 产出：**向导式安装包**（Inno Setup），也可单独取汉化后的 `tailscale-ipn.exe`
+- 产出：**向导式安装包**（Inno Setup，约 38 MB，内嵌官方 MSI），也可单独取汉化后的 `tailscale-ipn.exe`
 
-> 只替换托盘 / 主界面程序 `tailscale-ipn.exe`，**不改动** `tailscaled` 服务、WinTun 驱动以及其它任何文件。
+> 界面汉化只替换托盘 / 主界面程序 `tailscale-ipn.exe`，**不改动** `tailscaled` 服务与 WinTun 驱动。
+> 未装 Tailscale 时，安装包会先用官方原始 MSI 静默装好完整组件，再打汉化。
 
 ---
 
@@ -19,14 +23,25 @@
 
 ### 方式 A：安装包（推荐）
 
-1. 先装好官方 [Tailscale 1.104.1](https://pkgs.tailscale.com/stable/tailscale-setup-1.104.1-amd64.msi)（x64）。
-2. 下载本仓库 Release 里的 `Tailscale-zh-1.104.1-setup.exe`，**右键 → 以管理员身份运行**。
-3. 安装程序会：退出托盘程序 → 把官方原版备份为 `tailscale-ipn.exe.orig` → 写入汉化版 → 重新拉起托盘程序。
-4. 卸载「Tailscale 中文汉化」即可**自动还原**官方版本。
-   托盘程序会随卸载一起退出，从开始菜单重新打开 Tailscale 即可；
-   `tailscaled` 服务与其网络连通性全程不受影响。
+下载本仓库 Release 里的 `Tailscale-zh-1.104.1-setup.exe`，**右键 → 以管理员身份运行**。
+
+安装程序会：
+
+1. 检查目标机是否已装 Tailscale。
+   - **没装** → 用随包的官方 MSI **静默**安装完整组件，再替换界面程序。
+     **全新机器一步到位，不必先手动跑官方安装向导。**
+   - **已装** → 跳过官方安装，只替换界面程序，并把原版备份为 `tailscale-ipn.exe.orig`。
+2. 退出正在运行的托盘程序 → 写入汉化版 → 重新拉起托盘程序。
+
+卸载「Tailscale 中文汉化」即可**自动还原**官方界面程序：
+
+- 托盘程序会随卸载一起退出，从开始菜单重新打开 Tailscale 即可；
+  `tailscaled` 服务、WinTun 驱动与网络连通性全程不受影响。
+- 官方 Tailscale 本体**不会**被卸载（可在「应用和功能」里单独卸）。
 
 ### 方式 B：手动替换
+
+> 前提：目标机已装**官方 Tailscale 1.104.1**。
 
 ```
 1. 右键托盘图标 → 退出 Tailscale
@@ -50,15 +65,23 @@
 
 ## 二、汉化范围
 
-共 **47 条**界面文案，覆盖主面板、Preferences（设置）、账号子菜单、Exit nodes（出口节点）子菜单等。
+共 **118 条**界面文案，覆盖主面板、Preferences（设置）、账号子菜单、Exit nodes（出口节点）子菜单，
+以及托盘提示、气泡通知、Taildrop 文件传输、更新提示、管理员批准/签署，
+和**无人值守 / 出口节点确认对话框**等二级界面。
 完整中英对照见 [`tools/zh_win.tsv`](tools/zh_win.tsv)。
 
 | 类别 | 例子 |
 | --- | --- |
-| 连接状态 | `Connected` → 已连接 · `Disconnected. Click to connect.` → 未连接，点击连接 |
-| 菜单项 | `Preferences` → 设置 · `Log &out` → 注销 · `&Add another account...` → &添加其他账号... |
-| 设备列表 | `This device: %s (%s)` → 本机: %s (%s) · `unknown device` → 未知设备 |
-| 出口节点 | `Exit nodes` → 出口 · `Run exit node...` → 运行出口节点 · `Best Available` → 最佳可用 |
+| 连接状态 | `Connected` → 已连接 · `Connected - ` → 已连接 -  · `Connecting...` → 连接中... · `Connection lost` → 连接已断开 |
+| 菜单项 | `Preferences` → 设置 · `Log &out` → 注销 · `Bug report...` → 问题反馈... · `Open with...` → 打开方式... |
+| 设备列表 | `This device: %s (%s)` → 本机: %s (%s) · `unknown device` → 未知设备 · `Managed by %s` → 管理方 %s |
+| 出口节点 | `Exit nodes` → 出口 · `Run exit node...` → 运行出口节点 · `No exit node available` → 无可用出口节点 |
+| 托盘提示 | `Tailscale: Please log in.` → Tailscale: 请登录。 · `You are logged out. The last login error was: %v` → 您已注销。上次登录错误：%v |
+| 文件传输 | `Ready to send %d files` → 准备发送 %d 个文件 · `You canceled the file transfer.` → 您取消了文件传输。 |
+| 通知与状态 | `Tailscale Update Available` → Tailscale 有可用更新 · `Always On mode` → 常开模式 · `Latest %s version: %s` → 最新 %s 版本：%s |
+| 网络异常 | `Tailscale could not connect to the '%s' relay server...` → Tailscale 无法连接中继服务器 '%s'。 · `You have enabled a non-default log target...` → 您已启用非默认的日志目标。 |
+| 确认对话框 | `Are you sure you want to enable Unattended Mode?` → 确定要启用无人值守模式？ · `Are you sure you want to run an exit node?` → 确定要运行出口节点？ |
+| 管理员操作 | `Admin Approval Needed` → 需要管理员批准 · `Your network admin needs to sign this computer...` → 网络管理员需要签署此计算机加入网络。 |
 
 ---
 
@@ -69,14 +92,18 @@ Go 编译的二进制把字符串常量**连续**堆在 `.rdata` 里，代码用
 
 1. 用 [capstone](https://www.capstone-engine.org/) **全量反汇编** `.text`，建立 `地址 → [(引用指令, 声明长度)]` 表。
 2. **保长替换为主**：中文 UTF-8 字节数 ≤ 英文时，原地写入中文 + 空格补齐。
-   长度一字节不变 ⇒ 不用改任何指令，对 `LEAQ`、静态 `{ptr,len}` 头、数据段指针等**任何引用方式都自动生效**。本版 47 条里有 44 条走这条路。
-3. **扩容**：中文更长时（`Exit`、`Run exit node...`、`Run exit node?` 共 3 条），写入 `.rsrc` 尾部
-   504 字节全零空档，并同步改写引用处的 `LEAQ` 位移与长度立即数。
+   长度一字节不变 ⇒ 不用改任何指令，对 `LEAQ`、静态 `{ptr,len}` 头、数据段指针等**任何引用方式都自动生效**。本版 118 条里有 102 条走这条路。
+3. **扩容**：中文更长时（本版 16 条），写入 `.rsrc` 尾部
+   504 字节全零空档，并同步改写引用处的 `LEAQ` 位移与长度立即数。当前共用掉 323 字节。
 4. **重叠字面量保护**（关键）：`.rdata` 里存在共享前缀的字面量，例如 `Preferences`(11) 与
    `PreferencesMenu`(15) 相邻存放。后者是 syspolicy 设置键，用来拼 Prometheus 指标名；
    若被误改成中文会直接 `panic: illegal metric name`。
    因此对每个候选地址，取其 `LEAQ` 之后**紧随的首个「写寄存器」`MOV reg, imm`** 作为*声明长度*，
    只要与当前串长度不符就**拒绝该位置**。
+5. **多行文案**：无人值守 / 出口节点确认框的正文本身就是**一条含 `\r\n\r\n` 的长字符串常量**
+   （例如 `Are you sure you want to enable Unattended Mode?` 那条 286 字节）。TSV 是逐行解析的，
+   写不进真实换行，故对照表支持 `\r` `\n` `\t` `\\` `\xHH` 转义（行尾空格写作 `\x20`），
+   由 `patch_zh.py` 在读取时还原；`verify.py` 用同一套还原逻辑，避免两边不一致。
 
 ## 四、构建
 
@@ -105,6 +132,12 @@ python tools/verify.py extract/ClientGUIx64 build/tailscale-ipn.zh.exe tools/zh_
 ISCC.exe installer\tailscale-zh.iss
 # 产物: dist\Tailscale-zh-1.104.1-setup.exe
 ```
+
+安装包是否内嵌官方 MSI（即是否具备「一体化安装」能力），由编译期探测仓库根目录有没有
+`tailscale-setup.msi` 决定（`#ifexist`）：
+
+- **有** → 内嵌，约 38 MB，全新机器可直接一键装好；
+- **没有** → 自动降级成「仅替换」模式，约 8.5 MB，要求目标机已装官方版。
 
 不想在系统里装 Inno Setup 也可以免安装解压一份来用（Inno 自己的安装包支持 `/PORTABLE=1`）：
 
@@ -143,7 +176,7 @@ CI 会在**源文件哈希不符**时直接失败（不会产出错误的包）�
 │   ├── verify.py                              产物校验器
 │   ├── analyze_refs.py                        RIP 相对引用扫描（排查用）
 │   ├── build_strtab3.py                       字符串常量表提取（排查用）
-│   └── zh_win.tsv                             47 条中英对照表
+│   └── zh_win.tsv                             118 条中英对照表（支持 \r\n\xHH 转义）
 └── docs/patch-report.txt                      最近一次补丁明细
 ```
 

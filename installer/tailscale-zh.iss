@@ -1,23 +1,37 @@
 ; =====================================================================
 ;  Tailscale 中文汉化 —— Inno Setup 安装包脚本
 ;
+;  【一体化模式】编译目录旁若存在官方 tailscale-setup.msi，则一并内嵌：
+;    - 目标机未装 Tailscale → 先静默安装官方组件，再替换为汉化版；
+;    - 目标机已装 Tailscale → 跳过官方安装，直接替换。
+;  官方 MSI 缺失时自动降级成「仅替换」模式（要求目标机已预装官方版）。
+;
 ;  只替换托盘 / 主界面程序 tailscale-ipn.exe，
 ;  **不触碰** tailscaled 服务、WinTun 驱动与其它任何文件。
 ;
 ;  安装: 把官方原版备份为 tailscale-ipn.exe.orig，再写入汉化版
-;  卸载: 自动把 .orig 还原回 tailscale-ipn.exe
+;  卸载: 自动把 .orig 还原回 tailscale-ipn.exe（不卸载官方 Tailscale）
 ;
 ;  编译: ISCC.exe installer\tailscale-zh.iss
-;  前置: ..\build\tailscale-ipn.zh.exe  （由 tools/build.py 生成）
+;  前置: ..\build\tailscale-ipn.zh.exe   由 tools/build.py 生成（必需）
+;        ..\tailscale-setup.msi         官方安装包（可选；有则一体化）
 ; =====================================================================
 
 #define MyZhName    "Tailscale 中文汉化"
 #define MyTsVersion "1.104.1"
-#define MyZhVersion "1.0.0"
+#define MyZhVersion "1.2.0"
 ; 唯一被替换的文件（托盘 / 主界面程序）。全脚本只在这里定义一次。
 #define ExeName     "tailscale-ipn.exe"
+; 随包的官方安装包文件名（若提供）
+#define MsiName     "tailscale-setup.msi"
 #define MyPublisher "guoxpeng"
 #define MyUrl       "https://github.com/guoxpeng/Tailscale"
+
+; 编译期探测官方 MSI 是否随包提供 —— 决定走「一体化」还是「仅替换」。
+; 注意：MSI 本身不入库（.gitignore 排除 *.msi），由构建流程临时下载到仓库根目录。
+#ifexist "..\tailscale-setup.msi"
+  #define HaveMsi
+#endif
 
 [Setup]
 AppId={{7C4E2A18-9B3D-4F52-8E61-5A0D3C9B7E24}
@@ -55,12 +69,19 @@ Name: "chinese"; MessagesFile: "{#SourcePath}\ChineseSimplified.isl"
 [Files]
 ; 汉化版先以 .new 落地，替换动作放在 [Code] 里做（要先备份原版）
 Source: "..\build\tailscale-ipn.zh.exe"; DestDir: "{app}"; DestName: "{#ExeName}.new"; Flags: ignoreversion
+#ifdef HaveMsi
+; 官方安装包：仅当目标机未安装 Tailscale 时执行（见 [Code] 的 EnsureOfficial）。
+; 落到 {tmp} 并装完即删，不污染安装目录、不进卸载清单。
+; DestName 固定成 {#MsiName}，与 [Code] 里的 MSI_NAME 常量严格一致
+Source: "..\{#MsiName}"; DestDir: "{tmp}"; DestName: "{#MsiName}"; Flags: deleteafterinstall
+#endif
 
 [Code]
 const
   EXE_NAME = '{#ExeName}';
   BAK_NAME = '{#ExeName}.orig';
   NEW_NAME = '{#ExeName}.new';
+  MSI_NAME = '{#MsiName}';
   EXPECT_SIZE = 29622776;
 
 function TsDir(): String;
@@ -128,8 +149,59 @@ begin
   end;
 end;
 
+{ 目标机没装过 Tailscale 时，先用随包的官方 MSI 静默装好完整组件。
+  —— 这是「一体化安装」的关键：全新的电脑直接装本包即可，
+     不必先手动跑官方安装向导，也就不会遇到官方向导里的英文界面。
+      /qn 完全静默；TS_NOLAUNCH=1 让官方安装程序不要把托盘拉起来占用待替换的 exe。
+  返回 True 表示官方主程序已就位。 }
+function EnsureOfficial(): Boolean;
+var
+  MsiPath: String;
+  Rc, I: Integer;
+  R: Boolean;
+begin
+  Result := FileExists(TsExe());
+  if Result then
+  begin
+    Log('检测到已安装的 Tailscale，跳过官方组件安装');
+    Exit;
+  end;
+
+  MsiPath := ExpandConstant('{tmp}') + '\' + MSI_NAME;
+  if not FileExists(MsiPath) then
+  begin
+    Log('目标机未安装 Tailscale，且随包未提供官方 MSI（' + MsiPath + '）');
+    Exit;   { 保持 False，由调用方决定如何提示 }
+  end;
+
+  Log('未检测到 Tailscale，开始静默安装官方组件: ' + MsiPath);
+  R := Exec(ExpandConstant('{sys}\msiexec.exe'),
+            '/i "' + MsiPath + '" /qn /norestart TS_NOLAUNCH=1',
+            '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  if R then
+    Log('msiexec 执行完毕，返回码 ' + IntToStr(Rc))
+  else
+    Log('msiexec 启动失败');
+
+  { MSI 装完后文件可能还要片刻才落盘，最多等 20 秒 }
+  for I := 1 to 20 do
+  begin
+    if FileExists(TsExe()) then
+      Break;
+    Sleep(1000);
+  end;
+  Result := FileExists(TsExe());
+  if not Result then
+    Log('官方组件安装后仍未找到 ' + TsExe());
+end;
+
 function InitializeSetup(): Boolean;
 begin
+  Result := True;
+#ifdef HaveMsi
+  { 随包内置官方安装包：全新的机器也能一键装成中文版，无需预装官方版 }
+  Log('随包内置官方安装包，可直接为未安装 Tailscale 的机器部署');
+#else
   if not FileExists(TsExe()) then
   begin
     MsgBox('未检测到已安装的 Tailscale。' + #13#10 + #13#10 +
@@ -137,9 +209,8 @@ begin
            '请先安装官方 Tailscale {#MyTsVersion}（x64），再运行本汉化安装包。',
            mbCriticalError, MB_OK);
     Result := False;
-  end
-  else
-    Result := True;
+  end;
+#endif
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -153,6 +224,37 @@ begin
   Base   := TsExe();
   Bak    := TsDir() + '\' + BAK_NAME;
   NewExe := TsDir() + '\' + NEW_NAME;
+
+#ifdef HaveMsi
+  { 干净机器：先把完整的官方组件静默装好，再打汉化补丁 }
+  if not EnsureOfficial() then
+  begin
+    MsgBox('未能安装 Tailscale 官方组件，安装中止。' + #13#10 + #13#10 +
+           '请检查网络连接，或先手动安装官方 Tailscale {#MyTsVersion}（x64）后重试。',
+           mbCriticalError, MB_OK);
+    RaiseException('官方组件安装失败');
+  end;
+#endif
+
+  { 版本一致性检查。汉化补丁依赖 1.104.1 的精确文件偏移，只对这个版本有效。
+    若目标机上装的是别的版本，替换后会出现「界面程序与服务端版本不匹配」，
+    属于用户可选择承担的风险，但必须让他明确知晓后再继续。 }
+  if FileExists(Base) then
+  begin
+    if not FileSize(Base, Sz) then
+      Sz := -1;
+    if (Sz > 0) and (Sz <> EXPECT_SIZE) then
+    begin
+      if MsgBox('检测到已安装的 ' + EXE_NAME + ' 为 ' + IntToStr(Sz) + ' 字节，' + #13#10 +
+                '与本汉化包对应的官方 {#MyTsVersion}（' + IntToStr(EXPECT_SIZE) + ' 字节）不一致。' + #13#10 + #13#10 +
+                '继续安装可能造成界面程序与服务端版本不匹配，建议先升级/降级到官方 {#MyTsVersion}。' + #13#10 + #13#10 +
+                '是否仍要继续安装？',
+                mbConfirmation, MB_YESNO) <> IDYES then
+        RaiseException('用户取消：已安装版本与本汉化包不一致');
+      Log('警告：已安装 ' + EXE_NAME + ' 为 ' + IntToStr(Sz) + ' 字节，与期望的 ' +
+          IntToStr(EXPECT_SIZE) + ' 不一致，用户选择继续');
+    end;
+  end;
 
   KillTray();
 

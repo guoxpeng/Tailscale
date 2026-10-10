@@ -151,20 +151,26 @@ jobs:
           prerelease: false
           generate_release_notes: false
           body: |
-            Tailscale **Windows** 界面汉化版，基于官方 ${{ env.TS_VERSION }} 二进制做偏移补丁（47 条界面文案）。
+            Tailscale **Windows** 界面汉化版，基于官方 ${{ env.TS_VERSION }} 二进制做偏移补丁（118 条界面文案）。
+
+            > ✅ **一体化安装包**：`setup.exe` 已内嵌官方 ${{ env.TS_VERSION }} 组件。
+            > **没装过 Tailscale 的电脑，直接装本包即可** —— 安装器会先用官方 MSI 静默装好完整组件
+            > （`msiexec /qn`，无英文向导、无弹窗），再把界面换成中文版。
 
             | 文件 | 说明 |
             | --- | --- |
-            | `Tailscale-zh-${{ env.TS_VERSION }}-setup.exe` | 向导式安装包：**需管理员运行**；自动把官方原版备份为 `tailscale-ipn.exe.orig`，卸载时自动还原 |
+            | `Tailscale-zh-${{ env.TS_VERSION }}-setup.exe` | 向导式安装包（约 38 MB）：**需管理员运行**；内含官方组件，全新机器可一步装好；自动把官方原版备份为 `tailscale-ipn.exe.orig`，卸载时自动还原 |
             | `tailscale-ipn.zh.exe` | 汉化后的主程序，可手动替换 `C:\Program Files\Tailscale\tailscale-ipn.exe` |
             | `install_zh.bat` | 一键安装 / 还原脚本（`install_zh.bat restore` 还原） |
             | `patch-report.txt` | 逐条补丁明细（保长替换 / 扩容 / 冲突拒绝） |
-            | `zh_win.tsv` | 47 条中英对照表 |
+            | `zh_win.tsv` | 118 条中英对照表 |
             | `SHA256SUMS.txt` | 上述文件的 SHA256 校验清单（`certutil -hashfile <文件> SHA256` 比对） |
 
             说明：
 
             - 只替换托盘 / 主界面程序 `tailscale-ipn.exe`，**不改动** `tailscaled` 服务与 WinTun 驱动。
+            - 汉化范围含主面板、设置、出口节点、托盘提示、通知气泡、Taildrop 文件传输、
+              更新提示、管理员批准/签署，以及**无人值守 / 出口节点确认对话框**。
             - 汉化后官方数字签名失效，Windows 可能提示「未知发布者」。
             - Tailscale 自动更新会覆盖汉化，建议在「设置」中取消勾选「自动安装&更新」。
           files: release/*
