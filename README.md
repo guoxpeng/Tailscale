@@ -1,5 +1,10 @@
 # Tailscale Windows 汉化
 
+> ⚠️ **这是补丁包，不是完整安装程序！**
+> **必须先装好官方原版 Tailscale 1.104.1**，再运行本汉化包。
+> **不要先卸载官方版**——安装程序需要备份原版 `tailscale-ipn.exe`，没有原版文件会直接报错中止。
+
+
 把 Tailscale **Windows 桌面端**（`tailscale-ipn.exe`，托盘图标与主面板）的界面文字替换成简体中文。
 
 - 基版本：**Tailscale 1.104.1 (x64)**
