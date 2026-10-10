@@ -1,0 +1,18 @@
+# 本项目对「字节」敏感：
+#   - tools/zh_win.tsv 是补丁对照表，多一个 \r 就会静默产出损坏的 exe
+#   - prebuilt/*.exe 是二进制
+# 因此显式统一换行策略，覆盖 Windows 上常见的 core.autocrlf=true。
+
+* text=auto eol=lf
+
+# 二进制，绝不转换
+*.exe binary
+*.msi binary
+
+# 补丁对照表 / 明文报告：必须 LF
+*.tsv text eol=lf
+*.txt text eol=lf
+
+# Windows 批处理需要 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf

@@ -1,0 +1,65 @@
+源: tailscale-ipn.orig.exe (29622776 字节)   扩容区 VA=0x143ca4e08 大小=504
+
+OK    Connected                        -> 已连接                9->9 字节  副本=1
+OK    Connected. Click for options.    -> 已连接，点击查看           29->24 字节  副本=1  [无静态引用,唯一副本→保长替换]
+OK    Disconnected. Click to connect.  -> 未连接，点击连接           31->24 字节  副本=1  [无静态引用,唯一副本→保长替换]
+OK    Starting...                      -> 启动中                11->9 字节  副本=1
+OK    Stopped                          -> 停止                 7->6 字节  副本=1
+OK    Logged out                       -> 已注销                10->9 字节  副本=1
+OK    This device: %s (%s)             -> 本机: %s (%s)        20->15 字节  副本=1
+OK    Network devices                  -> 网络设备               15->12 字节  副本=1
+OK    Exit nodes                       -> 出口                 10->6 字节  副本=1
+OK    Preferences                      -> 设置                 11->6 字节  副本=1
+OK    &About…                          -> &关于                9->7 字节  副本=1
+GROW  Exit                             -> 退出                 4->6 字节  新VA=0x143ca4e08  改动=1
+OK    My devices                       -> 设备                 10->6 字节  副本=1
+OK    None                             -> 无                  4->3 字节  副本=1
+OK    Recommended:                     -> 推荐:                13->8 字节  副本=1
+OK    Tailnet exit nodes               -> Tailnet 出口         18->14 字节  副本=1
+OK    Allow local network access       -> 允许本地网络访问           26->24 字节  副本=1
+GROW  Run exit node...                 -> 运行出口节点             16->18 字节  新VA=0x143ca4e0e  改动=1
+OK    &Add another account...          -> &添加其他账号...         23->22 字节  副本=1
+OK    Admin &console...                -> 管理&控制台             17->16 字节  副本=1
+OK    Log &out                         -> 注销                 8->6 字节  副本=1
+OK    Allow &incoming connections      -> 允许&传入连接            27->19 字节  副本=1
+OK    Use Tailscale &DNS settings      -> 使用 Tailscale &DNS设置 27->27 字节  副本=1
+OK    Use Tailscale &subnets           -> 使用Tailscale&子网     22->22 字节  副本=1
+OK    Automatically install &updates   -> 自动安装&更新            30->19 字节  副本=1
+OK    Run unattended                   -> 无人值守               14->12 字节  副本=1
+OK    Reset to defaults                -> 恢复默认值              17->15 字节  副本=1
+OK    Setting options to defaults      -> 选项恢复为默认值           27->24 字节  副本=1
+OK    Update Tailscale?                -> 更新 Tailscale?      17->17 字节  副本=1
+OK    Restart Connection               -> 重新连接               18->12 字节  副本=1
+OK    &Reauthenticate...               -> &重新认证...           18->16 字节  副本=1
+OK    About Tailscale                  -> 关于Tailscale        15->15 字节  副本=1
+OK    Tailscale: Starting...           -> Tailscale: 启动中     22->20 字节  副本=1
+OK    Confirm unattended mode          -> 确认无人值守             23->18 字节  副本=1
+OK    You're all set                   -> 全部就绪               14->12 字节  副本=1
+OK    unknown device                   -> 未知设备               14->12 字节  副本=1
+GROW  Run exit node?                   -> 运行出口节点?            14->19 字节  新VA=0x143ca4e20  改动=1
+OK    Best Available                   -> 最佳可用               14->12 字节  副本=1
+OK    Remote Desktop                   -> 远程桌面               14->12 字节  副本=1
+OK    Tagged devices                   -> 标签设备               14->12 字节  副本=1
+OK    &Log in...                       -> &登录...             10->10 字节  副本=1
+OK    Tailscale Start/Stop             -> Tailscale 启停       20->16 字节  副本=1  [无静态引用,唯一副本→保长替换]
+OK    My Address                       -> 地址                 10->6 字节  副本=1
+OK    IP address                       -> IP 地址              10->9 字节  副本=1
+OK    Managed by                       -> 管理方                10->9 字节  副本=1
+OK    Expiration                       -> 有效期                10->9 字节  副本=1
+OK    Web client                       -> 网页端                10->9 字节  副本=1
+
+保长替换: 44 条    扩容: 3 条    未处理: 0 条
+
+因「声明长度不符」被拒（重叠字面量保护）:
+  REJECT Connected                      @0x92af2f(VA=0x14092bf2f) 声明长度=[12] != 9
+  REJECT Preferences                    @0x92e3de(VA=0x14092f3de) 声明长度=[15] != 11
+  REJECT Exit                           @0x928de6(VA=0x140929de6) 声明长度=[10] != 4
+  REJECT Exit                           @0x928df0(VA=0x140929df0) 声明长度=[10] != 4
+  REJECT Exit                           @0x928e7c(VA=0x140929e7c) 声明长度=[10] != 4
+  REJECT Exit                           @0x92e3cf(VA=0x14092f3cf) 声明长度=[15] != 4
+  REJECT Exit                           @0x937a93(VA=0x140938a93) 声明长度=[22] != 4
+  REJECT Exit                           @0x937abf(VA=0x140938abf) 声明长度=[22] != 4
+  REJECT Recommended:                   @0x93906a(VA=0x14093a06a) 声明长度=[23] != 13
+  REJECT Managed by                     @0x92c047(VA=0x14092d047) 声明长度=[13] != 10
+
+输出: work/tailscale-ipn.zh6.exe (29622776 字节)  改变字节数=698  扩容区已用 43/504

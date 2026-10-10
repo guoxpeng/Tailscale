@@ -1,0 +1,153 @@
+name: Build PC (Windows) Chinese Installer
+
+# 推送到 pc 分支、打 pc-v* 标签、或手动触发时：
+#   拉官方 MSI → 解出原始 tailscale-ipn.exe → 校验 SHA256 → 打汉化补丁
+#   → 校验产物 → Inno Setup 编译向导式安装包 → 上传 Artifact（打标签时发 Release）
+
+on:
+  push:
+    branches: [ pc ]
+    tags: [ 'pc-v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pc-installer-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TS_VERSION: "1.104.1"
+  TS_MSI_URL: "https://pkgs.tailscale.com/stable/tailscale-setup-1.104.1-amd64.msi"
+  # 官方 MSI 内 ClientGUIx64（= tailscale-ipn.exe）的 SHA256。
+  # 偏移补丁必须打在完全一致的源文件上，不一致直接失败。
+  TS_ORIG_SHA256: "0c3c56a6626c9f71a32fb307dbda0c810c94a89d66fed158258da6f043004f9c"
+  INNO_VERSION: "6.7.3"
+  INNO_URL: "https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe"
+
+jobs:
+  build:
+    name: 构建汉化安装包
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python deps
+        run: python -m pip install --disable-pip-version-check --no-cache-dir capstone
+
+      - name: Download official Tailscale MSI
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          curl.exe -fsSL -o tailscale-setup.msi "$env:TS_MSI_URL"
+          Get-Item tailscale-setup.msi | Format-List Name, Length
+
+      - name: Extract tailscale-ipn.exe from MSI
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $sevenZip = "${env:ProgramFiles}\7-Zip\7z.exe"
+          if (-not (Test-Path $sevenZip)) { $sevenZip = "7z" }
+          Remove-Item -Recurse -Force extract -ErrorAction SilentlyContinue
+          & $sevenZip x tailscale-setup.msi "-oextract" -y | Out-Null
+          Get-ChildItem extract -File | Format-Table Name, Length
+
+      - name: Verify source hash and stage original exe
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $want = $env:TS_ORIG_SHA256.ToLower()
+          $hit = $null
+          Get-ChildItem extract -File | ForEach-Object {
+            $h = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
+            Write-Host "$h  $($_.Name)"
+            if ($h -eq $want) { $hit = $_.FullName }
+          }
+          if (-not $hit) {
+            throw "MSI 中未找到 SHA256=$want 的原始 tailscale-ipn.exe —— 官方可能已换版，需更新 zh_win.tsv 偏移表与本工作流常量。"
+          }
+          New-Item -ItemType Directory -Force build | Out-Null
+          Copy-Item $hit build\tailscale-ipn.exe
+          Write-Host "已定位原始程序: $hit"
+
+      - name: Apply Chinese patch
+        run: python tools\build.py build\tailscale-ipn.exe build
+
+      - name: Verify patched binary
+        run: python tools\verify.py build\tailscale-ipn.exe build\tailscale-ipn.zh.exe tools\zh_win.tsv
+
+      - name: Install Inno Setup ${{ env.INNO_VERSION }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          curl.exe -fsSL -o innosetup.exe "$env:INNO_URL"
+          $p = Start-Process -FilePath .\innosetup.exe -Wait -PassThru -ArgumentList `
+               '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/NOICONS', '/SP-'
+          Write-Host "Inno Setup 安装退出码: $($p.ExitCode)"
+          if ($p.ExitCode -ne 0) { throw "Inno Setup 安装失败，退出码 $($p.ExitCode)" }
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { throw "找不到 $iscc" }
+          Write-Host "ISCC: $iscc (版本 $((Get-Item $iscc).VersionInfo.ProductVersion))"
+
+      - name: Compile installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { $iscc = "${env:ProgramFiles}\Inno Setup 6\ISCC.exe" }
+          if (-not (Test-Path $iscc)) { throw "找不到 ISCC.exe" }
+          & $iscc "installer\tailscale-zh.iss"
+          if ($LASTEXITCODE -ne 0) { throw "ISCC 编译失败，退出码 $LASTEXITCODE" }
+          Get-ChildItem dist | Format-Table Name, Length
+
+      - name: Stage release files
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Remove-Item -Recurse -Force release -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force release | Out-Null
+          Copy-Item dist\*.exe            release\
+          Copy-Item build\tailscale-ipn.zh.exe release\
+          Copy-Item build\patch-report.txt     release\
+          Copy-Item tools\zh_win.tsv           release\
+          Copy-Item scripts\install_zh.bat     release\
+          Get-ChildItem release | Format-Table Name, Length
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tailscale-zh-windows-${{ env.TS_VERSION }}
+          path: release/*
+          if-no-files-found: error
+
+      - name: Publish release (tag only)
+        if: startsWith(github.ref, 'refs/tags/pc-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Tailscale Windows 汉化 ${{ env.TS_VERSION }}
+          generate_release_notes: false
+          body: |
+            Tailscale **Windows** 界面汉化版，基于官方 ${{ env.TS_VERSION }} 二进制做偏移补丁（47 条界面文案）。
+
+            | 文件 | 说明 |
+            | --- | --- |
+            | `Tailscale-zh-${{ env.TS_VERSION }}-setup.exe` | 向导式安装包：**需管理员运行**；自动把官方原版备份为 `tailscale-ipn.exe.orig`，卸载时自动还原 |
+            | `tailscale-ipn.zh.exe` | 汉化后的主程序，可手动替换 `C:\Program Files\Tailscale\tailscale-ipn.exe` |
+            | `install_zh.bat` | 一键安装 / 还原脚本（`install_zh.bat restore` 还原） |
+            | `patch-report.txt` | 逐条补丁明细（保长替换 / 扩容 / 冲突拒绝） |
+            | `zh_win.tsv` | 47 条中英对照表 |
+
+            说明：
+
+            - 只替换托盘 / 主界面程序 `tailscale-ipn.exe`，**不改动** `tailscaled` 服务与 WinTun 驱动。
+            - 汉化后官方数字签名失效，Windows 可能提示「未知发布者」。
+            - Tailscale 自动更新会覆盖汉化，建议在「设置」中取消勾选「自动安装&更新」。
+          files: release/*
