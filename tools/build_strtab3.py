@@ -9,6 +9,13 @@ import io
 import re
 from capstone import Cs, CS_ARCH_X86, CS_MODE_64
 
+# Windows 上默认输出编码可能是 cp1252，打印中文会 UnicodeEncodeError
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 exe, outfile = sys.argv[1], sys.argv[2]
 data = open(exe, 'rb').read()
 

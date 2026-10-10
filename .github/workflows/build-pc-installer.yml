@@ -25,6 +25,9 @@ env:
   TS_ORIG_SHA256: "0c3c56a6626c9f71a32fb307dbda0c810c94a89d66fed158258da6f043004f9c"
   INNO_VERSION: "6.7.3"
   INNO_URL: "https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe"
+  # Windows runner 的默认控制台编码不是 UTF-8，脚本打印中文会 UnicodeEncodeError
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: "utf-8"
 
 jobs:
   build:

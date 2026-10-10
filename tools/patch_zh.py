@@ -21,6 +21,15 @@ import re
 import bisect
 from capstone import Cs, CS_ARCH_X86, CS_MODE_64
 
+# Windows 上控制台 / 管道的默认编码可能是 cp1252 或 cp936，
+# 直接打印中文会抛 UnicodeEncodeError（英文 CI runner 上必现）。
+# 统一强制 UTF-8 输出，保证任何环境都能把构建跑完。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 src, dst, mapfile = sys.argv[1], sys.argv[2], sys.argv[3]
 report_path = sys.argv[4] if len(sys.argv) > 4 else None
 

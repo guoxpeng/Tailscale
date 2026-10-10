@@ -24,6 +24,14 @@ import os
 import subprocess
 import sys
 
+# Windows 上控制台 / 管道的默认编码可能是 cp1252 或 cp936，
+# 直接打印中文会抛 UnicodeEncodeError（英文 CI runner 上必现）。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # ---- 目标版本常量（换 Tailscale 版本时必须同步更新） ----
 TS_VERSION = "1.104.1"
 

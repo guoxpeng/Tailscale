@@ -23,6 +23,14 @@ import sys
 
 from capstone import Cs, CS_ARCH_X86, CS_MODE_64
 
+# Windows 上控制台 / 管道的默认编码可能是 cp1252 或 cp936，
+# 直接打印中文会抛 UnicodeEncodeError（英文 CI runner 上必现）。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # 绝不允许被改动的重叠字面量（改了会 panic: illegal metric name）
 MUST_KEEP = [b"PreferencesMenu"]
 
