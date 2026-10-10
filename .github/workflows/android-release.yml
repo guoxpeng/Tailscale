@@ -116,6 +116,8 @@ jobs:
           target_commitish: ${{ github.sha }}
           # 同名资产直接覆盖，方便同版本重跑
           overwrite_files: true
+          # 没匹配到 apk 就直接失败，避免静默建出「没有资产」的空更新
+          fail_on_unmatched_files: true
           draft: false
           prerelease: false
           generate_release_notes: false
